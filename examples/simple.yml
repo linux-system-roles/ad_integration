@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Example template role invocation
+- name: Example simple ad_integration role invocation
   hosts: all
   vars:
-    template_foo: example variable value
+    ad_integration_realm: domain.example.com
+    ad_integration_password: Secret123
 
   roles:
-    - linux-system-roles.template
+    - linux-system-roles.ad_integration

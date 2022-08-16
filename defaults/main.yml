@@ -3,6 +3,7 @@
 # Here is the right place to put the role's input variables.
 # This file also serves as a documentation for such a variables.
 
-# Examples of role input variables:
-template_foo: foo
-template_bar: bar
+# Realm name to join
+ad_integration_realm: ""
+# Password of the user used to authenticate the join operation
+ad_integration_password: ""

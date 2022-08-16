@@ -5,11 +5,13 @@
 # value in a platform/version specific file in vars/
 
 # Examples of non-distribution specific (generic) internal variables:
-__template_foo_config: foo.conf
-__template_packages: []
-__template_services: []
+__ad_integration_realmd_config: realmd.conf
+__ad_integration_packages:
+  - realmd
+  - PackageKit
+__ad_integration_services: [realmd]
 # ansible_facts required by the role
-__template_required_facts:
+__ad_integration_required_facts:
   - distribution
   - distribution_major_version
   - distribution_version
