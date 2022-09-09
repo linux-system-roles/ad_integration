@@ -29,6 +29,34 @@
 - name: Flush handlers
   meta: flush_handlers
 
-- name: Perform join operation
-  shell: echo {{ ad_integration_password }} | realm join {{ ad_integration_realm }}
-  when: not ansible_check_mode
+- name: Join to a specific Domain Controller
+  shell: |
+    set -euo pipefail
+    echo {{ ad_integration_password | quote }} | realm join -U \
+      {{ ad_integration_user | quote }} --membership-software \
+      {{ ad_integration_membership_software | quote }} \
+      {{ ad_integration_join_to_dc | quote }}
+  when:
+    - ad_integration_join_to_dc is not none
+    - not ansible_check_mode
+  register: __realm_join_output
+  failed_when:
+    - __realm_join_output is failed
+    - not __realm_join_output.stderr is search("Already joined to this domain")
+  changed_when: not __realm_join_output.stderr is search("Already joined to this domain")
+
+- name: Perform discovery-based realm join operation
+  shell: |
+    set -euo pipefail
+    echo {{ ad_integration_password | quote }} | realm join -U \
+      {{ ad_integration_user | quote }} --membership-software \
+      {{ ad_integration_membership_software | quote }} \
+      {{ ad_integration_realm | quote }}
+  when:
+    - ad_integration_join_to_dc is none
+    - not ansible_check_mode
+  register: __realm_join_output
+  failed_when:
+    - __realm_join_output is failed
+    - not __realm_join_output.stderr is search("Already joined to this domain")
+  changed_when: not __realm_join_output.stderr is search("Already joined to this domain")

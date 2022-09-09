@@ -1,9 +1,28 @@
-# SPDX-License-Identifier: MIT
 ---
 # Here is the right place to put the role's input variables.
 # This file also serves as a documentation for such a variables.
 
+## Required vars
 # Realm name to join
 ad_integration_realm: ""
 # Password of the user used to authenticate the join operation
 ad_integration_password: ""
+
+## Optional vars
+# Active Directory user used to join the domain
+ad_integration_user: "Administrator"
+
+# Active Directory domain controller's host name or IP address to join via that domain controller directly.
+ad_integration_join_to_dc: null
+
+# Turn it off to use UID and GID information stored in the directory (as-per RFC2307) rather than automatically generating UID and GID numbers
+ad_integration_auto_id_mapping: true
+
+# Control which client software is the preferred default for use with Active Directory. Possible values include sssd or winbind.
+ad_integration_client_software: "sssd"
+
+# The software to use when joining to the realm. Possible values include samba or adcli.
+ad_integration_membership_software: "adcli"
+
+# The distinguished name of an organizational unit to create the computer account. It can be relative to the Root DSE, or a complete LDAP DN.
+ad_integration_computer_ou: null

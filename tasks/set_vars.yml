@@ -3,7 +3,8 @@
   setup:
     gather_subset: min
   when: not ansible_facts.keys() | list |
-    intersect(__ad_integration_required_facts) == __ad_integration_required_facts
+    intersect(__ad_integration_required_facts) ==
+    __ad_integration_required_facts
 
 - name: Set platform/version specific variables
   include_vars: "{{ __vars_file }}"
