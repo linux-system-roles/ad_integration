@@ -1,11 +1,24 @@
 # SPDX-License-Identifier: MIT
 ---
-# Put the tasks for your role here.
+- name: Assume managing timesync if timesource is set
+  set_fact:
+    ad_integration_manage_timesync: true
+  when:
+    - ad_integration_timesync_source is not none
+    - ad_integration_timesync_source | length > 0
+
+- name: Ensure time source is provided if managing timesync
+  fail:
+    msg: >-
+      ad_integration_timesync_source must be provided if
+      manage timesync is true
+  when:
+    - ad_integration_manage_timesync | bool
+    - ad_integration_timesync_source is none
 
 - name: Set platform/version specific variables
   include_tasks: tasks/set_vars.yml
 
-# Examples of some tasks:
 - name: Ensure required packages are installed
   package:
     name: "{{ __ad_integration_packages }}"
@@ -28,6 +41,16 @@
 
 - name: Flush handlers
   meta: flush_handlers
+
+## Execute other roles if applicable
+- name: Manage timesync
+  include_role:
+   name: fedora.linux_system_roles.timesync
+  vars:
+    timesync_ntp_servers:
+      - hostname: "{{ ad_integration_timesync_source }}"
+        iburst: yes
+  when: ad_integration_manage_timesync | bool
 
 - name: Join to a specific Domain Controller
   shell: |

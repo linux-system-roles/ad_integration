@@ -26,3 +26,9 @@ ad_integration_membership_software: "adcli"
 
 # The distinguished name of an organizational unit to create the computer account. It can be relative to the Root DSE, or a complete LDAP DN.
 ad_integration_computer_ou: null
+
+# If true, the ad_integration role will use fedora.linux_system_roles.timesync. `ad_integration_timesync_source` variable is required, time will then be synchronized with this server.
+ad_integration_manage_timesync: false
+
+# Hostname or IP address of time source to synchronize the system clock with. Only applicable if `ad_integration_manage_timesync` is true.
+ad_integration_timesync_source: null
