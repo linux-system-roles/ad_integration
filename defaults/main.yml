@@ -32,3 +32,10 @@ ad_integration_manage_timesync: false
 
 # Hostname or IP address of time source to synchronize the system clock with. Only applicable if `ad_integration_manage_timesync` is true.
 ad_integration_timesync_source: null
+
+# If true, the ad_integration role will use fedora.linux_system_roles.crypto_policies as needed
+ad_integration_manage_crypto_policies: false
+
+# If true, the ad_integration role will set the crypto policy allowing RC4 encryption.
+# Requires ad_integration_manage_crypto_policies to be set to true
+ad_integration_allow_rc4_crypto: false
