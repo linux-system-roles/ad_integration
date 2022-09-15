@@ -32,6 +32,18 @@
     - ad_integration_allow_rc4_crypto | bool
     - not ad_integration_manage_crypto_policies
 
+  # Validate manage dns variables
+- name: Ensure all required dns variables are provided
+  fail:
+    msg: >-
+      ad_integration_dns_server, ad_integration_dns_connection_name, and
+      ad_integration_dns_connection_type must be provided if manage dns is true
+  when:
+    - ad_integration_manage_dns | bool
+    - (ad_integration_dns_server is none or
+       ad_integration_dns_connection_name is none or
+       ad_integration_dns_connection_type is none)
+
 - name: Set platform/version specific variables
   include_tasks: tasks/set_vars.yml
 
@@ -59,6 +71,19 @@
   meta: flush_handlers
 
 ## Execute other roles if applicable
+- name: Add AD server to existing network connection for DNS
+  include_role:
+    name: fedora.linux_system_roles.network
+  vars:
+    network_connections:
+      - name: "{{ ad_integration_dns_connection_name }}"
+        interface_name: ""
+        type: "{{ ad_integration_dns_connection_type }}"
+        ip:
+          dns: "{{ ad_integration_dns_server }}"
+    network_allow_restart: yes
+  when: ad_integration_manage_dns | bool
+
 - name: Manage timesync
   include_role:
    name: fedora.linux_system_roles.timesync

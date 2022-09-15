@@ -39,3 +39,21 @@ ad_integration_manage_crypto_policies: false
 # If true, the ad_integration role will set the crypto policy allowing RC4 encryption.
 # Requires ad_integration_manage_crypto_policies to be set to true
 ad_integration_allow_rc4_crypto: false
+
+# If true, the ad_integration role will use fedora.linux_system_roles.network to configure an existing network connection DNS configuration (manual) to point to the provided AD DNS server.
+# If true then the following variables are required:
+# `ad_integration_dns_server`,              DNS Server to add to existing network connection
+# `ad_integration_dns_connection_name`,     Existing network connection name to configure
+# `ad_integration_dns_connection_type`      Existing Network connection type to configure
+ad_integration_manage_dns: false
+
+# IP address of DNS server to add to existing networking configuration
+ad_integration_dns_server: null
+
+# The name option identifies the connection profile to be configured by the network role. It is not the name of the networking interface for which the profile applies.
+# Only applicable if `ad_integration_manage_dns` is true
+ad_integration_dns_connection_name: null
+
+# Network connection type, the network role contains a list of possible values.
+# Only applicable if `ad_integration_manage_dns` is true
+ad_integration_dns_connection_type: null
