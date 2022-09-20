@@ -16,7 +16,7 @@
     - ad_integration_manage_timesync | bool
     - ad_integration_timesync_source is none
 
-  # Validate manage crypto variables
+# Validate manage crypto variables
 - name: Assume managing crypto policies if allow_rc4_crypto is set
   set_fact:
     ad_integration_manage_crypto_policies: true
@@ -32,7 +32,7 @@
     - ad_integration_allow_rc4_crypto | bool
     - not ad_integration_manage_crypto_policies
 
-  # Validate manage dns variables
+# Validate manage dns variables
 - name: Ensure all required dns variables are provided
   fail:
     msg: >-
