@@ -86,7 +86,7 @@
 
 - name: Manage timesync
   include_role:
-   name: fedora.linux_system_roles.timesync
+    name: fedora.linux_system_roles.timesync
   vars:
     timesync_ntp_servers:
       - hostname: "{{ ad_integration_timesync_source }}"
@@ -95,7 +95,7 @@
 
 - name: Manage crypto policies
   include_role:
-   name: fedora.linux_system_roles.crypto_policies
+    name: fedora.linux_system_roles.crypto_policies
   vars:
     crypto_policies_policy: "DEFAULT:AD-SUPPORT"
   when:
@@ -105,10 +105,11 @@
       (ansible_distribution in ['CentOS', 'RedHat'] and
        ansible_distribution_version is version('8', '>=')))
 
-## RHEL9 uses the AD-SUPPORT-LEGACY policy for RC4, otherwise AD-SUPPORT allows it
+## RHEL9 uses the AD-SUPPORT-LEGACY policy for RC4,
+## otherwise AD-SUPPORT allows it
 - name: Enable crypto policy allowing RC4 encryption
   include_role:
-   name: fedora.linux_system_roles.crypto_policies
+    name: fedora.linux_system_roles.crypto_policies
   vars:
     crypto_policies_policy: "DEFAULT:AD-SUPPORT-LEGACY"
   when:
@@ -130,7 +131,8 @@
   failed_when:
     - __realm_join_output is failed
     - not __realm_join_output.stderr is search("Already joined to this domain")
-  changed_when: not __realm_join_output.stderr is search("Already joined to this domain")
+  changed_when: not __realm_join_output.stderr is
+    search("Already joined to this domain")
 
 - name: Perform discovery-based realm join operation
   shell: |
@@ -146,4 +148,5 @@
   failed_when:
     - __realm_join_output is failed
     - not __realm_join_output.stderr is search("Already joined to this domain")
-  changed_when: not __realm_join_output.stderr is search("Already joined to this domain")
+  changed_when: not __realm_join_output.stderr is
+    search("Already joined to this domain")
