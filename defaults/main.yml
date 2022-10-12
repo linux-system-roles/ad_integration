@@ -1,9 +1,73 @@
-# SPDX-License-Identifier: MIT
 ---
 # Here is the right place to put the role's input variables.
 # This file also serves as a documentation for such a variables.
 
+## Required vars
 # Realm name to join
 ad_integration_realm: ""
 # Password of the user used to authenticate the join operation
 ad_integration_password: ""
+
+## Optional vars
+# Active Directory user used to join the domain
+ad_integration_user: "Administrator"
+
+# Active Directory domain controller's host name or IP address to join
+# via that domain controller directly.
+ad_integration_join_to_dc: null
+
+# Turn it off to use UID and GID information stored in the directory
+#  (as-per RFC2307) rather than automatically generating UID and GID numbers
+ad_integration_auto_id_mapping: true
+
+# Control which client software is the preferred default for use with
+# Active Directory.  Possible values include sssd or winbind.
+ad_integration_client_software: "sssd"
+
+# The software to use when joining to the realm.
+# Possible values include samba or adcli.
+ad_integration_membership_software: "adcli"
+
+# The distinguished name of an organizational unit to create the computer
+# account.  It can be relative to the Root DSE, or a complete LDAP DN.
+ad_integration_computer_ou: null
+
+# If true, the ad_integration role will use fedora.linux_system_roles.timesync.
+# `ad_integration_timesync_source` variable is required,
+# time will then be synchronized with this server.
+ad_integration_manage_timesync: false
+
+# Hostname or IP address of time source to synchronize the system clock with.
+# Only applicable if `ad_integration_manage_timesync` is true.
+ad_integration_timesync_source: null
+
+# If true, the ad_integration role will use
+# fedora.linux_system_roles.crypto_policies as needed
+ad_integration_manage_crypto_policies: false
+
+# If true, the ad_integration role will set the crypto policy
+# allowing RC4 encryption.
+# Requires ad_integration_manage_crypto_policies to be set to true
+ad_integration_allow_rc4_crypto: false
+
+# If true, the ad_integration role will use fedora.linux_system_roles.network
+# to configure an existing network connection DNS configuration (manual)
+# to point to the provided AD DNS server.
+# If true then the following variables are required:
+# `ad_integration_dns_server`
+# `ad_integration_dns_connection_name`
+# `ad_integration_dns_connection_type`
+ad_integration_manage_dns: false
+
+# IP address of DNS server to add to existing networking configuration
+ad_integration_dns_server: null
+
+# The name option identifies the connection profile to be configured by the
+# network role. It is not the name of the networking interface for which the
+# profile applies.
+# Only applicable if `ad_integration_manage_dns` is true
+ad_integration_dns_connection_name: null
+
+# Network connection type, the network role contains a list of possible values.
+# Only applicable if `ad_integration_manage_dns` is true
+ad_integration_dns_connection_type: null

@@ -1,11 +1,52 @@
 # SPDX-License-Identifier: MIT
 ---
-# Put the tasks for your role here.
+- name: Assume managing timesync if timesource is set
+  set_fact:
+    ad_integration_manage_timesync: true
+  when:
+    - ad_integration_timesync_source is not none
+    - ad_integration_timesync_source | length > 0
+
+- name: Ensure time source is provided if managing timesync
+  fail:
+    msg: >-
+      ad_integration_timesync_source must be provided if
+      manage timesync is true
+  when:
+    - ad_integration_manage_timesync | bool
+    - ad_integration_timesync_source is none
+
+# Validate manage crypto variables
+- name: Assume managing crypto policies if allow_rc4_crypto is set
+  set_fact:
+    ad_integration_manage_crypto_policies: true
+  when:
+    - ad_integration_allow_rc4_crypto | bool
+
+- name: Ensure manage_crypt_policies is set with crypto_allow_rc4
+  fail:
+    msg: >-
+      ad_integration_manage_crypto_policies must be true if
+      ad_integration_allow_rc4_crypto is true
+  when:
+    - ad_integration_allow_rc4_crypto | bool
+    - not ad_integration_manage_crypto_policies
+
+# Validate manage dns variables
+- name: Ensure all required dns variables are provided
+  fail:
+    msg: >-
+      ad_integration_dns_server, ad_integration_dns_connection_name, and
+      ad_integration_dns_connection_type must be provided if manage dns is true
+  when:
+    - ad_integration_manage_dns | bool
+    - (ad_integration_dns_server is none or
+       ad_integration_dns_connection_name is none or
+       ad_integration_dns_connection_type is none)
 
 - name: Set platform/version specific variables
   include_tasks: tasks/set_vars.yml
 
-# Examples of some tasks:
 - name: Ensure required packages are installed
   package:
     name: "{{ __ad_integration_packages }}"
@@ -29,6 +70,83 @@
 - name: Flush handlers
   meta: flush_handlers
 
-- name: Perform join operation
-  shell: echo {{ ad_integration_password }} | realm join {{ ad_integration_realm }}
-  when: not ansible_check_mode
+## Execute other roles if applicable
+- name: Add AD server to existing network connection for DNS
+  include_role:
+    name: fedora.linux_system_roles.network
+  vars:
+    network_connections:
+      - name: "{{ ad_integration_dns_connection_name }}"
+        interface_name: ""
+        type: "{{ ad_integration_dns_connection_type }}"
+        ip:
+          dns: "{{ ad_integration_dns_server }}"
+    network_allow_restart: yes
+  when: ad_integration_manage_dns | bool
+
+- name: Manage timesync
+  include_role:
+    name: fedora.linux_system_roles.timesync
+  vars:
+    timesync_ntp_servers:
+      - hostname: "{{ ad_integration_timesync_source }}"
+        iburst: yes
+  when: ad_integration_manage_timesync | bool
+
+- name: Manage crypto policies
+  include_role:
+    name: fedora.linux_system_roles.crypto_policies
+  vars:
+    crypto_policies_policy: "DEFAULT:AD-SUPPORT"
+  when:
+    - ad_integration_manage_crypto_policies | bool
+    # Fedora and RHEL8+
+    - (ansible_distribution == "Fedora" or
+      (ansible_distribution in ['CentOS', 'RedHat'] and
+       ansible_distribution_version is version('8', '>=')))
+
+## RHEL9 uses the AD-SUPPORT-LEGACY policy for RC4,
+## otherwise AD-SUPPORT allows it
+- name: Enable crypto policy allowing RC4 encryption
+  include_role:
+    name: fedora.linux_system_roles.crypto_policies
+  vars:
+    crypto_policies_policy: "DEFAULT:AD-SUPPORT-LEGACY"
+  when:
+    - ad_integration_allow_rc4_crypto | bool
+    - ansible_distribution in ['CentOS', 'RedHat']
+    - ansible_distribution_version is version('9', '>=')
+
+- name: Join to a specific Domain Controller
+  shell: |
+    set -euo pipefail
+    echo {{ ad_integration_password | quote }} | realm join -U \
+      {{ ad_integration_user | quote }} --membership-software \
+      {{ ad_integration_membership_software | quote }} \
+      {{ ad_integration_join_to_dc | quote }}
+  when:
+    - ad_integration_join_to_dc is not none
+    - not ansible_check_mode
+  register: __realm_join_output
+  failed_when:
+    - __realm_join_output is failed
+    - not __realm_join_output.stderr is search("Already joined to this domain")
+  changed_when: not __realm_join_output.stderr is
+    search("Already joined to this domain")
+
+- name: Perform discovery-based realm join operation
+  shell: |
+    set -euo pipefail
+    echo {{ ad_integration_password | quote }} | realm join -U \
+      {{ ad_integration_user | quote }} --membership-software \
+      {{ ad_integration_membership_software | quote }} \
+      {{ ad_integration_realm | quote }}
+  when:
+    - ad_integration_join_to_dc is none
+    - not ansible_check_mode
+  register: __realm_join_output
+  failed_when:
+    - __realm_join_output is failed
+    - not __realm_join_output.stderr is search("Already joined to this domain")
+  changed_when: not __realm_join_output.stderr is
+    search("Already joined to this domain")
