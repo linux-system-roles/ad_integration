@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: all,!ad
   tasks:
     - name: create var file in caller that can override the one in called role
       delegate_to: localhost
@@ -39,4 +39,6 @@
     - import_role:
         name: caller
       vars:
+        ad_integration_realm: "{{ __ad_integration_dummy_realm }}"
+        ad_integration_password: Secret123
         roletoinclude: linux-system-roles.template

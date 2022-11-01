@@ -4,7 +4,7 @@
 
 ## Required vars
 # Realm name to join
-ad_integration_realm: ""
+ad_integration_realm: null
 # Password of the user used to authenticate the join operation
 ad_integration_password: ""
 

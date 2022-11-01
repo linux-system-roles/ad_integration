@@ -1,10 +1,48 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Ensure that the role runs with default parameters
-  hosts: all
+- name: Ensure that the role runs with manadatory parameters populated
+  hosts: all,!ad
   gather_facts: false  # test that role works in this case
-  roles:
-    - linux-system-roles.template
   vars:
-    ad_integration_realm: domain.com
+    ad_integration_realm: "{{ __ad_integration_dummy_realm }}" # dummy realm that will skip joining realm step
     ad_integration_password: Secret123
+
+  tasks:
+    - name: Run the system role
+      include_role:
+        name: linux-system-roles.template
+
+    - name: Test - check packages are present
+      block:
+      - name: Gather package facts
+        package_facts:
+          manager: auto
+      - name: Assert that expected packages are installed
+        assert:
+          that:
+           - "'realmd' in ansible_facts.packages"
+           - "'PackageKit' in ansible_facts.packages"
+
+    - name: Test - check realmd service
+      block:
+      - name: Gather service facts
+        service_facts:
+      - name: Assert that realmd service is enabled and running
+        assert:
+          that:
+            - "'realmd' in ansible_facts.services"
+            - 'ansible_facts.services["realmd"].state == "running"'
+            - 'ansible_facts.services["realmd"].status == "enabled"'
+
+    - name: Test - check realmd config exists
+      block:
+      - name: List files
+        shell: ls /etc
+        register: ls_out
+      - name: Assert that realmd config is present
+        assert:
+          that:
+            - "'realmd.conf' in ls_out.stdout_lines"
+
+
+
