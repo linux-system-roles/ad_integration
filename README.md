@@ -17,7 +17,7 @@ RHEL8 (and newer) and Fedora no longer support RC4 encryption out of the box, it
 
 The Linux system must be able to resolve default AD DNS SRV records.
 
-Ports must be opened from Linux to AD:
+The following firewall ports must be opened on the AD server side, reachable from the Linux client.
 
 | Source Port | Destination | Protocol    | Service                                                   |
 |-------------|-------------|-------------|-----------------------------------------------------------|
