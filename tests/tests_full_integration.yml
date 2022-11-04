@@ -1,0 +1,79 @@
+# SPDX-License-Identifier: MIT
+---
+
+# To run this test properly AD (ad1) needs to be present and in the inventory
+# AD should be pre-configured as a dns for the client machine.
+
+# Example inventory:
+# [client]
+# client1 ansible_connection=local ansible_host=127.0.0.1 ad_integration_realm="domain.com" ad_integration_password=Secret123
+# [ad]
+# ad1 ansible_host=<AD IP> ansible_connection=winrm ansible_password=Secret123 ansible_port=5986 ansible_user=Administrator ansible_winrm_server_cert_validation=ignore
+
+
+- name: Prepare user and groups on the AD
+  hosts: ad
+  tasks:
+    - name: Create groups
+      win_domain_group:
+        name: "{{ item.name }}"
+        state: present
+        scope: "{{ item.scope }}"
+      loop:
+        - { name: 'test_grp0', scope: 'universal' }
+        - { name: 'test_grp1', scope: 'universal' }
+      register: group_creation
+    - debug:
+        var: group_creation
+
+    - name: Add a test user
+      win_domain_user:
+        name: "{{ item.name }}"
+        firstname: "{{ item.first_name }}"
+        surname: "{{ item.surname }}"
+        password: Secret123
+        state: present
+        groups:
+          - test_grp1
+      loop:
+       - { name: 'test_usr1', first_name: 'Josef', surname: 'Novak' }
+      register: user_creation
+    - debug:
+        var: user_creation
+
+- name: Ensure that the role runs with real AD
+  hosts: client
+  tasks:
+    - name: Run tests
+      block:
+
+        - name: Test run the system role
+          include_role:
+            name: linux-system-roles.template
+          register: role_run
+        - debug:
+            var: role_run
+
+        - name: Restart sssd
+          service:
+            name: sssd
+            state: restarted
+
+        - name: Test joined realm
+          shell:
+            cmd: realm list
+          register: realm_list
+          failed_when: '"{{ ad_integration_realm }}" not in realm_list.stdout'
+
+        - name: Test verify user is present
+          shell:
+            cmd: getent passwd test_usr1@{{ ad_integration_realm }}
+
+        - name: Test verify group is present
+          shell:
+            cmd: getent group test_grp1@{{ ad_integration_realm }}
+
+      always:
+        - name: Teardown - Leave realm
+          shell: cmd="realm leave"
+          ignore_errors: yes

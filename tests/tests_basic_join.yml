@@ -23,17 +23,6 @@
            - "'realmd' in ansible_facts.packages"
            - "'PackageKit' in ansible_facts.packages"
 
-    - name: Test - check realmd service
-      block:
-      - name: Gather service facts
-        service_facts:
-      - name: Assert that realmd service is enabled and running
-        assert:
-          that:
-            - "'realmd' in ansible_facts.services"
-            - 'ansible_facts.services["realmd"].state == "running"'
-            - 'ansible_facts.services["realmd"].status == "enabled"'
-
     - name: Test - check realmd config exists
       block:
       - name: List files
