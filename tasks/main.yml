@@ -130,6 +130,7 @@
       echo {{ ad_integration_password | quote }} | realm join -U \
         {{ ad_integration_user | quote }} --membership-software \
         {{ ad_integration_membership_software | quote }} \
+        {{ ad_integration_additional_parameters }} \
         {{ ad_integration_join_to_dc | quote }}
   when:
     - ad_integration_join_to_dc is not none
@@ -141,6 +142,7 @@
       echo {{ ad_integration_password | quote }} | realm join -U \
         {{ ad_integration_user | quote }} --membership-software \
         {{ ad_integration_membership_software | quote }} \
+        {{ ad_integration_additional_parameters }} \
         {{ ad_integration_realm | quote }}
   when:
     - ad_integration_join_to_dc is none

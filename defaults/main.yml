@@ -71,3 +71,6 @@ ad_integration_dns_connection_name: null
 # Network connection type, the network role contains a list of possible values.
 # Only applicable if `ad_integration_manage_dns` is true
 ad_integration_dns_connection_type: null
+
+# Any additional parameters passed to realm join command
+ad_integration_additional_parameters: ""
