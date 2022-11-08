@@ -123,6 +123,13 @@ The name option identifies the connection profile to be configured by the networ
 
 Network connection type such as ethernet, bridge, bond...etc, the network role contains a list of possible values. Only applicable if `ad_integration_manage_dns` is true
 
+#### ad_integration_join_parameters
+
+Additional parameters (as a string) supplied directly to the realm join command.
+Useful if some specific configuration like --user-principal=host/name@REALM or --use-ldaps is needed.
+See man realm for details.
+Example: ad_integration_join_parameters: "--user-principal host/client007@EXAMPLE.COM"
+
 ## Dependencies
 
 N/A

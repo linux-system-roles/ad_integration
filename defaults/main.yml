@@ -73,4 +73,5 @@ ad_integration_dns_connection_name: null
 ad_integration_dns_connection_type: null
 
 # Any additional parameters passed to realm join command
-ad_integration_additional_parameters: ""
+# Useful for passing things like --user-principal etc.
+ad_integration_join_parameters: ""

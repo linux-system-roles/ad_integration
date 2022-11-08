@@ -125,39 +125,44 @@
 
 - name: Build Command - Join to a specific Domain Controller
   set_fact:
-    join_command: |
+    __ad_integration_join_command: |
       set -euo pipefail
       echo {{ ad_integration_password | quote }} | realm join -U \
         {{ ad_integration_user | quote }} --membership-software \
         {{ ad_integration_membership_software | quote }} \
-        {{ ad_integration_additional_parameters }} \
+        {{ ad_integration_join_parameters }} \
         {{ ad_integration_join_to_dc | quote }}
+  no_log: true
   when:
     - ad_integration_join_to_dc is not none
 
 - name: Build Join Command - Perform discovery-based realm join operation
   set_fact:
-    join_command: |
+    __ad_integration_join_command: |
       set -euo pipefail
       echo {{ ad_integration_password | quote }} | realm join -U \
         {{ ad_integration_user | quote }} --membership-software \
         {{ ad_integration_membership_software | quote }} \
-        {{ ad_integration_additional_parameters }} \
+        {{ ad_integration_join_parameters }} \
         {{ ad_integration_realm | quote }}
+  no_log: true
   when:
     - ad_integration_join_to_dc is none
 
 - name: Show the join command for debug
   debug:
-    msg: "Would run: '{{ join_command }}'"
+    msg: "Would run: '{{ __ad_integration_join_command }}'"
   when:
-    - ad_integration_join_to_dc == __ad_integration_dummy_dc or ad_integration_realm == __ad_integration_dummy_realm
-    - ansible_check_mode
+    - ad_integration_join_to_dc == __ad_integration_dummy_dc
+      or ad_integration_realm == __ad_integration_dummy_realm
+      or ansible_check_mode
 
 - name: Run realm join command
-  shell: "{{ join_command }}"
+  shell: "{{ __ad_integration_join_command }}"  # noqa 305
+  no_log: true
   when:
-    - ad_integration_join_to_dc != __ad_integration_dummy_dc and ad_integration_realm != __ad_integration_dummy_realm
+    - ad_integration_join_to_dc != __ad_integration_dummy_dc
+    - ad_integration_realm != __ad_integration_dummy_realm
     - not ansible_check_mode
   register: __realm_join_output
   failed_when:

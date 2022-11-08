@@ -2,7 +2,7 @@
   tasks:
     - name: Set platform/version specific variables
       include_role:
-        name: linux-system-roles.template
+        name: linux-system-roles.ad_integration
         tasks_from: set_vars.yml
         public: true
 

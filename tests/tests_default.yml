@@ -4,14 +4,14 @@
   hosts: all,!ad
   gather_facts: false  # test that role works in this case
   tasks:
-    - name: Verify that by default the role fails without ad_integration_realm variable
+    - name: Verify that the role fails without ad_integration_realm variable
       block:
         - name: Include the role
-          ansible.builtin.include_role:
-            name: linux-system-roles.template
+          include_role:
+            name: linux-system-roles.ad_integration
 
       rescue:
         - name: Assert that user is notified about missing variables
           assert:
             that:
-              - '"Variable ad_integration_realm must be provided!" in ansible_failed_result.msg'
+              - '"Variable ad_integration_realm" in ansible_failed_result.msg'
