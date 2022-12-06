@@ -1,6 +1,21 @@
 Changelog
 =========
 
+[1.0.0] - 2022-12-06
+--------------------
+
+### New Features
+
+- initial versioned release
+
+### Bug Fixes
+
+- none
+
+### Other Changes
+
+- Add integration tests for the role. (#4)
+
 [0.0.1] - 2022-11-01
 --------------------
 
