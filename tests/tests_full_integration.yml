@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: MIT
+---
+
+# To run this test properly AD (ad1) needs to be present in the inventory
+# AD should be pre-configured as a dns for the client machine.
+# Ansible collections ansible.windows and community.windows need to
+#  be installed on client(s)
+
+# Example inventory:
+# [client]
+# client1 ansible_connection=local ansible_host=127.0.0.1 \
+#  ad_integration_realm="domain.com" ad_integration_password=Secret123
+# [ad]
+# ad1 ansible_host=<AD IP> ansible_connection=winrm ansible_password=Secret123\
+#  ansible_port=5986 ansible_user=Administrator\
+#  ansible_winrm_server_cert_validation=ignore
+
+- name: Set variables
+  hosts: client
+  tasks:
+    - name: Set ad_integration_realm if it is not defined or is empty
+      set_fact:
+        ad_integration_realm: domain.com
+      when: ad_integration_realm is not defined or not ad_integration_realm
+
+- name: Prepare user and groups on the AD
+  hosts: ad
+  tasks:
+    - name: Create groups
+      win_domain_group:
+        name: "{{ item.name }}"
+        state: present
+        scope: "{{ item.scope }}"
+      loop:
+        - { name: 'test_grp0', scope: 'universal' }
+        - { name: 'test_grp1', scope: 'universal' }
+      register: group_creation
+    - debug:
+        var: group_creation
+
+    - name: Add a test user
+      win_domain_user:
+        name: "{{ item.name }}"
+        firstname: "{{ item.first_name }}"
+        surname: "{{ item.surname }}"
+        password: Secret123
+        state: present
+        groups:
+          - test_grp1
+      loop:
+        - { name: 'test_usr1', first_name: 'Josef', surname: 'Novak' }
+      register: user_creation
+    - debug:
+        var: user_creation
+
+- name: Ensure that the role runs with real AD
+  hosts: client
+  tasks:
+    - name: Run tests
+      block:
+
+        - name: Test run the system role
+          include_role:
+            name: linux-system-roles.ad_integration
+          register: role_run
+        - debug:
+            var: role_run
+
+        - name: Restart sssd
+          service:
+            name: sssd
+            state: restarted
+
+        - name: Test sssd config contains the realm
+          command: 'cat /etc/sssd/sssd.conf'
+          register: sssd_config
+          failed_when: '"{{ ad_integration_realm }}" not in sssd_config.stdout'
+          changed_when: false
+
+        - name: Test joined realm
+          command: realm list
+          register: realm_list
+          failed_when: '"{{ ad_integration_realm }}" not in realm_list.stdout'
+          changed_when: false
+        - debug:
+            var: realm_list
+
+        - name: Test verify user is present
+          command: getent passwd test_usr1@{{ ad_integration_realm }}
+          changed_when: false
+
+        - name: Test verify group is present
+          command: getent group test_grp1@{{ ad_integration_realm }}
+          changed_when: false
+
+      always:
+        - name: Teardown - Leave realm
+          command: realm leave
+          ignore_errors: true  # noqa ignore-errors
+          changed_when: false

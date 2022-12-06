@@ -1,8 +1,8 @@
 ---
 # tasks file for caller
-
-- include_role:
+- name: Include the role
+  include_role:
     name: "{{ roletoinclude }}"
-
-- assert:
+- name: Test the caller override
+  assert:
     that: not __caller_override
