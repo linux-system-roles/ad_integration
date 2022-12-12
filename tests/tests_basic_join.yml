@@ -4,8 +4,8 @@
   hosts: all,!ad
   gather_facts: false  # test that role works in this case
   vars:
-    # dummy realm that will skip joining realm step
-    ad_integration_realm: "{{ __ad_integration_dummy_realm }}"
+    # sample realm that will skip joining realm step
+    ad_integration_realm: "{{ __ad_integration_sample_realm }}"
     ad_integration_password: Secret123
 
   tasks:
