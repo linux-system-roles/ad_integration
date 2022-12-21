@@ -16,7 +16,7 @@ __ad_integration_required_facts:
   - distribution_major_version
   - distribution_version
   - os_family
-# Dummy realm used for system tests without available real AD
-__ad_integration_dummy_realm: dummy-realm.com
-# Dummy dc server used for system tests without available real AD
-__ad_integration_dummy_dc: dummy-dc.dummy-realm.com
+# Sample realm used for system tests without available real AD
+__ad_integration_sample_realm: sample-realm.com
+# Sample dc server used for system tests without available real AD
+__ad_integration_sample_dc: sample-dc.sample-realm.com

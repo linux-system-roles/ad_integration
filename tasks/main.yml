@@ -153,16 +153,16 @@
   debug:
     msg: "Would run: '{{ __ad_integration_join_command }}'"
   when:
-    - ad_integration_join_to_dc == __ad_integration_dummy_dc
-      or ad_integration_realm == __ad_integration_dummy_realm
+    - ad_integration_join_to_dc == __ad_integration_sample_dc
+      or ad_integration_realm == __ad_integration_sample_realm
       or ansible_check_mode
 
 - name: Run realm join command
   shell: "{{ __ad_integration_join_command }}"  # noqa 305
   no_log: true
   when:
-    - ad_integration_join_to_dc != __ad_integration_dummy_dc
-    - ad_integration_realm != __ad_integration_dummy_realm
+    - ad_integration_join_to_dc != __ad_integration_sample_dc
+    - ad_integration_realm != __ad_integration_sample_realm
     - not ansible_check_mode
   register: __realm_join_output
   failed_when:
