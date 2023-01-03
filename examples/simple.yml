@@ -4,7 +4,6 @@
   hosts: all
   vars:
     ad_integration_realm: domain.example.com
-    ad_integration_password: Secret123
-
+    ad_integration_password: Secret123  # use Ansible Vault for this
   roles:
     - linux-system-roles.ad_integration

@@ -40,10 +40,11 @@
         state: present
         scope: "{{ item.scope }}"
       loop:
-        - { name: 'test_grp0', scope: 'universal' }
-        - { name: 'test_grp1', scope: 'universal' }
+        - {name: 'test_grp0', scope: 'universal'}
+        - {name: 'test_grp1', scope: 'universal'}
       register: group_creation
-    - debug:
+    - name: Debug group_creation
+      debug:
         var: group_creation
 
     - name: Add a test user
@@ -56,9 +57,10 @@
         groups:
           - test_grp1
       loop:
-        - { name: 'test_usr1', first_name: 'Josef', surname: 'Novak' }
+        - {name: 'test_usr1', first_name: 'Josef', surname: 'Novak'}
       register: user_creation
-    - debug:
+    - name: Debug user_creation
+      debug:
         var: user_creation
 
 - name: Ensure that the role runs with real AD - join to DC
@@ -71,7 +73,8 @@
           include_role:
             name: linux-system-roles.ad_integration
           register: role_run
-        - debug:
+        - name: Debug role_run
+          debug:
             var: role_run
 
         - name: Restart sssd
@@ -90,7 +93,8 @@
           register: realm_list
           failed_when: '"{{ ad_integration_realm }}" not in realm_list.stdout'
           changed_when: false
-        - debug:
+        - name: Debug realm_list
+          debug:
             var: realm_list
 
         - name: Test verify user is present

@@ -1,4 +1,6 @@
-- hosts: all,!ad
+---
+- name: Setup snapshot
+  hosts: all,!ad
   tasks:
     - name: Set platform/version specific variables
       include_role:

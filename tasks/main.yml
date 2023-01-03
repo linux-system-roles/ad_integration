@@ -62,16 +62,16 @@
   service:
     name: "{{ item }}"
     state: started
-    enabled: yes
+    enabled: true
   loop: "{{ __ad_integration_services }}"
 
 - name: Generate /etc/{{ __ad_integration_realmd_config }}
   template:
     src: "{{ __ad_integration_realmd_config }}.j2"
     dest: /etc/{{ __ad_integration_realmd_config }}
-    backup: yes
+    backup: true
     mode: 0400
-  notify: ad_integration handler to restart services
+  notify: Handler for ad_integration to restart services
 
 - name: Flush handlers
   meta: flush_handlers
@@ -87,7 +87,7 @@
         type: "{{ ad_integration_dns_connection_type }}"
         ip:
           dns: "{{ ad_integration_dns_server }}"
-    network_allow_restart: yes
+    network_allow_restart: true
   when: ad_integration_manage_dns | bool
 
 - name: Manage timesync
@@ -96,7 +96,7 @@
   vars:
     timesync_ntp_servers:
       - hostname: "{{ ad_integration_timesync_source }}"
-        iburst: yes
+        iburst: true
   when: ad_integration_manage_timesync | bool
 
 - name: Manage crypto policies
@@ -158,7 +158,8 @@
       or ansible_check_mode
 
 - name: Run realm join command
-  shell: "{{ __ad_integration_join_command }}"  # noqa 305
+  # noqa command-instead-of-shell
+  shell: "{{ __ad_integration_join_command }}"
   no_log: true
   when:
     - ad_integration_join_to_dc != __ad_integration_sample_dc

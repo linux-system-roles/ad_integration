@@ -1,3 +1,23 @@
 ---
 skip_list:
-- '106'  # Role name does not match ^[a-z][a-z0-9_]+$ pattern
+  - fqcn-builtins
+exclude_paths:
+  - tests/roles/
+  - .github/
+  - examples/roles/
+kinds:
+  - yaml: "**/meta/collection-requirements.yml"
+  - yaml: "**/tests/collection-requirements.yml"
+  - playbook: "**/tests/tests_*.yml"
+  - playbook: "**/tests/setup-snapshot.yml"
+  - tasks: "**/tests/*.yml"
+  - playbook: "**/tests/playbooks/*.yml"
+  - tasks: "**/tests/tasks/*.yml"
+  - tasks: "**/tests/tasks/*/*.yml"
+  - vars: "**/tests/vars/*.yml"
+  - playbook: "**/examples/*.yml"
+mock_modules:
+  - win_domain_group
+  - win_domain_user
+mock_roles:
+  - linux-system-roles.ad_integration
