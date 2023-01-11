@@ -4,6 +4,8 @@ vault.yml
 *.retry
 /tests/.coverage
 /tests/htmlcov*
+/tests/roles/caller/vars/*
+!/tests/roles/caller/vars/main.yml
 /.tox
 /venv*/
 /.venv/

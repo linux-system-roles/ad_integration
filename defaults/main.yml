@@ -4,7 +4,7 @@
 
 ## Required vars
 # Realm name to join
-ad_integration_realm: ""
+ad_integration_realm: null
 # Password of the user used to authenticate the join operation
 ad_integration_password: ""
 
@@ -71,3 +71,7 @@ ad_integration_dns_connection_name: null
 # Network connection type, the network role contains a list of possible values.
 # Only applicable if `ad_integration_manage_dns` is true
 ad_integration_dns_connection_type: null
+
+# Any additional parameters passed to realm join command
+# Useful for passing things like --user-principal etc.
+ad_integration_join_parameters: ""

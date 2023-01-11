@@ -1,5 +1,11 @@
 # SPDX-License-Identifier: MIT
 ---
+- name: Ensure that mandatory variable ad_integration_realm is available
+  fail:
+    msg: Variable ad_integration_realm must be provided!
+  when:
+    - not ad_integration_realm
+
 - name: Assume managing timesync if timesource is set
   set_fact:
     ad_integration_manage_timesync: true
@@ -56,16 +62,16 @@
   service:
     name: "{{ item }}"
     state: started
-    enabled: yes
+    enabled: true
   loop: "{{ __ad_integration_services }}"
 
 - name: Generate /etc/{{ __ad_integration_realmd_config }}
   template:
     src: "{{ __ad_integration_realmd_config }}.j2"
     dest: /etc/{{ __ad_integration_realmd_config }}
-    backup: yes
+    backup: true
     mode: 0400
-  notify: ad_integration handler to restart services
+  notify: Handler for ad_integration to restart services
 
 - name: Flush handlers
   meta: flush_handlers
@@ -81,7 +87,7 @@
         type: "{{ ad_integration_dns_connection_type }}"
         ip:
           dns: "{{ ad_integration_dns_server }}"
-    network_allow_restart: yes
+    network_allow_restart: true
   when: ad_integration_manage_dns | bool
 
 - name: Manage timesync
@@ -90,7 +96,7 @@
   vars:
     timesync_ntp_servers:
       - hostname: "{{ ad_integration_timesync_source }}"
-        iburst: yes
+        iburst: true
   when: ad_integration_manage_timesync | bool
 
 - name: Manage crypto policies
@@ -117,32 +123,47 @@
     - ansible_distribution in ['CentOS', 'RedHat']
     - ansible_distribution_version is version('9', '>=')
 
-- name: Join to a specific Domain Controller
-  shell: |
-    set -euo pipefail
-    echo {{ ad_integration_password | quote }} | realm join -U \
-      {{ ad_integration_user | quote }} --membership-software \
-      {{ ad_integration_membership_software | quote }} \
-      {{ ad_integration_join_to_dc | quote }}
+- name: Build Command - Join to a specific Domain Controller
+  set_fact:
+    __ad_integration_join_command: |
+      set -euo pipefail
+      echo {{ ad_integration_password | quote }} | realm join -U \
+        {{ ad_integration_user | quote }} --membership-software \
+        {{ ad_integration_membership_software | quote }} \
+        {{ ad_integration_join_parameters }} \
+        {{ ad_integration_join_to_dc | quote }}
+  no_log: true
   when:
     - ad_integration_join_to_dc is not none
-    - not ansible_check_mode
-  register: __realm_join_output
-  failed_when:
-    - __realm_join_output is failed
-    - not __realm_join_output.stderr is search("Already joined to this domain")
-  changed_when: not __realm_join_output.stderr is
-    search("Already joined to this domain")
 
-- name: Perform discovery-based realm join operation
-  shell: |
-    set -euo pipefail
-    echo {{ ad_integration_password | quote }} | realm join -U \
-      {{ ad_integration_user | quote }} --membership-software \
-      {{ ad_integration_membership_software | quote }} \
-      {{ ad_integration_realm | quote }}
+- name: Build Join Command - Perform discovery-based realm join operation
+  set_fact:
+    __ad_integration_join_command: |
+      set -euo pipefail
+      echo {{ ad_integration_password | quote }} | realm join -U \
+        {{ ad_integration_user | quote }} --membership-software \
+        {{ ad_integration_membership_software | quote }} \
+        {{ ad_integration_join_parameters }} \
+        {{ ad_integration_realm | quote }}
+  no_log: true
   when:
     - ad_integration_join_to_dc is none
+
+- name: Show the join command for debug
+  debug:
+    msg: "Would run: '{{ __ad_integration_join_command }}'"
+  when:
+    - ad_integration_join_to_dc == __ad_integration_sample_dc
+      or ad_integration_realm == __ad_integration_sample_realm
+      or ansible_check_mode
+
+- name: Run realm join command
+  # noqa command-instead-of-shell
+  shell: "{{ __ad_integration_join_command }}"
+  no_log: true
+  when:
+    - ad_integration_join_to_dc != __ad_integration_sample_dc
+    - ad_integration_realm != __ad_integration_sample_realm
     - not ansible_check_mode
   register: __realm_join_output
   failed_when:
