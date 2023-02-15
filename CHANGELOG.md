@@ -1,6 +1,21 @@
 Changelog
 =========
 
+[1.0.2] - 2023-02-15
+--------------------
+
+### New Features
+
+- none
+
+### Bug Fixes
+
+- Add `state: up` for the network role to activate the connection (#20)
+
+### Other Changes
+
+- none
+
 [1.0.1] - 2023-01-20
 --------------------
 
