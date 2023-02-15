@@ -87,6 +87,7 @@
         type: "{{ ad_integration_dns_connection_type }}"
         ip:
           dns: "{{ ad_integration_dns_server }}"
+        state: up
     network_allow_restart: true
   when: ad_integration_manage_dns | bool
 
