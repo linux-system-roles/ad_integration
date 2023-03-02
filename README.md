@@ -11,7 +11,7 @@ Supported Distributions
 
 It is recommended to use the Administrator user to join with Active Directory. If the Administrator user cannot be used, the normal Active Directory user must have sufficient join permissions.
 
-Time must be in sync with Active Directory servers.  The ad_integration role will use the timesync system role for this if the user specifies `ad_integration_manage_timesync` to true and provides a value for `ad_integration_join_to_dc` to use as a timesource.
+Time must be in sync with Active Directory servers.  The ad_integration role will use the timesync system role for this if the user specifies `ad_integration_manage_timesync` to true and provides a value for `ad_integration_timesync_source` to use as a timesource.
 
 RHEL8 (and newer) and Fedora no longer support RC4 encryption out of the box, it is recommended to enable AES in Active Directory, if not possible then the AD-SUPPORT crypto policy must be enabled.  The integration role will use the crypto_policies system role for this if the user sets the `ad_integration_manage_crypto_policies` and `ad_integration_allow_rc4_crypto` parameters to true.
 
