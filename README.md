@@ -9,7 +9,12 @@ Supported Distributions
 
 ## Requirements
 
-It is recommended to use the Administrator user to join with Active Directory. If the Administrator user cannot be used, the normal Active Directory user must have sufficient join permissions.
+In order to join to the domain, you must use an Active Directory user
+which has sufficient join permissions.  It is not recommended to use the
+Administrator user as the security footprint of this user is too large.
+
+See [Delegated Permissions](https://www.mankier.com/8/adcli#Delegated_Permissions)
+for the explicit permissions a user must have.
 
 Time must be in sync with Active Directory servers.  The ad_integration role will use the timesync system role for this if the user specifies `ad_integration_manage_timesync` to true and provides a value for `ad_integration_timesync_source` to use as a timesource.
 
