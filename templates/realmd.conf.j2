@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 #
 {{ ansible_managed | comment }}
+{{ "system_role:ad_integration" | comment(prefix="", postfix="") }}
 [active-directory]
 default-client = {{ ad_integration_client_software }}
 
