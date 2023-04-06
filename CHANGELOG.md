@@ -1,6 +1,16 @@
 Changelog
 =========
 
+[1.0.3] - 2023-04-06
+--------------------
+
+### Other Changes
+
+- Fix typo in README for timesync variable (#23)
+- Improve recommendation for AD join user account (#24)
+- Add README-ansible.md to refer Ansible intro page on linux-system-roles.github.io (#26)
+- Fingerprint RHEL System Role managed config files (#27)
+
 [1.0.2] - 2023-02-15
 --------------------
 
