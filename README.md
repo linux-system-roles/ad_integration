@@ -63,6 +63,12 @@ an Active Directory domain controller's hostname (do not use IP address) may be 
 
 Default: Not set
 
+#### ad_integration_force_rejoin
+
+Leave existing domain prior to performing join. This might be needed if the keytab is unable to authenticate with the machine account to the AD domain.
+
+Default: false
+
 #### ad_integration_auto_id_mapping
 
 perform automatic UID/GID mapping for users and groups, set to `false` to rely on POSIX attributes already present in Active Directory.

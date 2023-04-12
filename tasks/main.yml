@@ -124,6 +124,21 @@
     - ansible_distribution in ['CentOS', 'RedHat']
     - ansible_distribution_version is version('9', '>=')
 
+## Handle rejoin, if applicable
+- name: Check if we are already joined to a domain
+  command: realm -v list
+  register: __ad_integration_realm_list
+  changed_when: false
+  when: ad_integration_force_rejoin | bool
+
+- name: Leave existing joined domain
+  command: realm -v leave
+  when:
+    - ad_integration_force_rejoin | bool
+    - '"domain-name" in __ad_integration_realm_list.stdout'
+    - not ansible_check_mode
+  changed_when: true
+
 - name: Build Command - Join to a specific Domain Controller
   set_fact:
     __ad_integration_join_command: |

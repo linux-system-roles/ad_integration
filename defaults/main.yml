@@ -16,6 +16,9 @@ ad_integration_user: "Administrator"
 # via that domain controller directly.
 ad_integration_join_to_dc: null
 
+# Leave existing domain prior to performing join.
+ad_integration_force_rejoin: false
+
 # Turn it off to use UID and GID information stored in the directory
 #  (as-per RFC2307) rather than automatically generating UID and GID numbers
 ad_integration_auto_id_mapping: true
