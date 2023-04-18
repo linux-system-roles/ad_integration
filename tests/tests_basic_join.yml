@@ -29,3 +29,9 @@
       register: __stat_result
       failed_when: not __stat_result.stat.exists
       changed_when: false
+
+    - name: Test - Check realmd headers
+      include_tasks: tasks/check_header.yml
+      vars:
+        __file: /etc/realmd.conf
+        __fingerprint: "system_role:ad_integration"
