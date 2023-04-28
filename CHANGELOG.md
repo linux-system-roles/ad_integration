@@ -1,6 +1,19 @@
 Changelog
 =========
 
+[1.1.0] - 2023-04-27
+--------------------
+
+### New Features
+
+- Add 'ad_integration_force_rejoin' role variable (#29)
+
+### Other Changes
+
+- test: check generated files for ansible_managed, fingerprint
+- test: ensure the test works with ANSIBLE_GATHERING=explicit
+- ci: Add commitlint GitHub action to ensure conventional commits with feedback
+
 [1.0.3] - 2023-04-06
 --------------------
 
