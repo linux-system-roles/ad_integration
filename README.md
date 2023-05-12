@@ -2,8 +2,8 @@
 
 An ansible role which configures direct Active Directory integration.
 
-Supported Distributions
------------------------
+## Supported Distributions
+
 * RHEL7+, CentOS7+
 * Fedora
 
@@ -35,7 +35,6 @@ The following firewall ports must be opened on the AD server side, reachable fro
 | 1024:65535  | 3269        | TCP         | LDAP Global Catalog SSL                                   |
 | 1024:65535  | 123         | UDP         | NTP/Chrony(Optional)                                      |
 | 1024:65535  | 323         | UDP         | NTP/Chrony (Optional)                                     |
-
 
 ## Role Variables
 
@@ -118,6 +117,7 @@ Default: false
 #### ad_integration_manage_dns
 
 If true, the ad_integration role will use fedora.linux_system_roles.network to add the provided dns server (see below) with manual DNS configuration to an existing connection. If true then the following variables are required:
+
 * `ad_integration_dns_server` - DNS server to add
 * `ad_integration_dns_connection_name` - Existing network connection name to configure
 * `ad_integration_dns_connection_type` - Existing network connection type to configure
@@ -140,10 +140,6 @@ Additional parameters (as a string) supplied directly to the realm join command.
 Useful if some specific configuration like --user-principal=host/name@REALM or --use-ldaps is needed.
 See man realm for details.
 Example: ad_integration_join_parameters: "--user-principal host/client007@EXAMPLE.COM"
-
-## Dependencies
-
-N/A
 
 ## Example Playbook
 
