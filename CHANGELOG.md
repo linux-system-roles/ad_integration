@@ -1,6 +1,13 @@
 Changelog
 =========
 
+[1.1.2] - 2023-06-06
+--------------------
+
+### Other Changes
+
+- tests: Add a test for force rejoin option (#41)
+
 [1.1.1] - 2023-05-26
 --------------------
 
