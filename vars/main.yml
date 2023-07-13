@@ -16,6 +16,11 @@ __ad_integration_required_facts:
   - distribution_major_version
   - distribution_version
   - os_family
+# the subsets of ansible_facts that need to be gathered in case any of the
+# facts in required_facts is missing; see the documentation of
+# the 'gather_subset' parameter of the 'setup' module
+__ad_integration_required_facts_subsets: "{{ ['!all', '!min'] +
+  __ad_integration_required_facts }}"
 # Sample realm used for system tests without available real AD
 __ad_integration_sample_realm: sample-realm.com
 # Sample dc server used for system tests without available real AD
