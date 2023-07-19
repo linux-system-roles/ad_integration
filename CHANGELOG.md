@@ -1,6 +1,19 @@
 Changelog
 =========
 
+[1.1.3] - 2023-07-19
+--------------------
+
+### Bug Fixes
+
+- fix: facts being gathered unnecessarily (#46)
+
+### Other Changes
+
+- ci: Add pull request template and run commitlint on PR title only (#43)
+- ci: Rename commitlint to PR title Lint, echo PR titles from env var (#44)
+- ci: ansible-lint - ignore var-naming[no-role-prefix] (#45)
+
 [1.1.2] - 2023-06-06
 --------------------
 
