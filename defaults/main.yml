@@ -75,6 +75,56 @@ ad_integration_dns_connection_name: null
 # Only applicable if `ad_integration_manage_dns` is true
 ad_integration_dns_connection_type: null
 
+# If true, SSSD is configured to automatically update the AD DNS server with
+# the IP address of the client.
+# If true, then the following optional variables can be set for fine tuning:
+# `ad_dyndns_ttl`
+# `ad_dyndns_iface`
+# `ad_dyndns_refresh_interval`
+# `ad_dyndns_update_ptr`
+# `ad_dyndns_force_tcp`
+# `ad_dyndns_auth`
+# `ad_dyndns_server`
+ad_dyndns_update: false
+
+# Optional. The TTL, in seconds, to apply to the client's DNS record when
+# updating it.
+# Note: This will override the TTL set by an administrator on the server.
+# Only applicable if `ad_dyndns_update` is true
+ad_dyndns_ttl: 3600
+
+# Optional. Interface or a list of interfaces whose IP addresses should be used
+# for dynamic DNS updates. Special value "*" implies all IPs from all interfaces
+# should be used.
+# Only applicable if `ad_dyndns_update` is true
+ad_dyndns_iface: null
+
+# Optional. How often should, in seconds, periodic DNS updates be performed in
+# addition to when the back end goes online.
+# Note: lowest possible value is 60 seconds. If value less than 60 is specified
+# sssd will assume lowest value only.
+# Only applicable if `ad_dyndns_update` is true
+ad_dyndns_refresh_interval: 86400
+
+# Optional. If true, the PTR record should also be explicitly updated.
+# Only applicable if `ad_dyndns_update` is true
+ad_dyndns_update_ptr: true
+
+# Optional. If true, the nsupdate utility should default to using TCP for
+# communicating with the DNS server.
+# Only applicable if `ad_dyndns_update` is true
+ad_dyndns_force_tcp: false
+
+# Optional. If true, GSS-TSIG authentication will be used for secure updates
+# with the DNS server when updating A and AAAA records.
+# Only applicable if `ad_dyndns_update` is true
+ad_dyndns_auth: true
+
+# Optional. DNS server to use when performing a DNS update when autodetection
+# settings fail.
+# Only applicable if `ad_dyndns_update` is true
+ad_dyndns_server: null
+
 # Any additional parameters passed to realm join command
 # Useful for passing things like --user-principal etc.
 ad_integration_join_parameters: ""
