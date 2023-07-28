@@ -187,3 +187,26 @@
     - not __realm_join_output.stderr is search("Already joined to this domain")
   changed_when: not __realm_join_output.stderr is
     search("Already joined to this domain")
+
+- name: Configure dynamic DNS updates
+  blockinfile:
+    path: /etc/sssd/sssd.conf
+    state: present
+    block: |
+      dyndns_update = {{ ad_dyndns_update }}
+      dyndns_ttl = {{ ad_dyndns_ttl }}
+      {% if (ad_dyndns_iface is not none) -%}
+        dyndns_iface = {{ ad_dyndns_iface | string }}
+      {% endif %}
+      dyndns_refresh_interval = {{ ad_dyndns_refresh_interval }}
+      dyndns_update_ptr = {{ ad_dyndns_update_ptr }}
+      dyndns_force_tcp = {{ ad_dyndns_force_tcp }}
+      dyndns_auth = {{ 'GSS-TSIG' if (ad_dyndns_auth) else 'none' }}
+      {% if (ad_dyndns_server is not none) -%}
+        dyndns_server = {{  ad_dyndns_server | string }}
+      {% endif %}
+    insertafter: "use_fully_qualified_names"
+  when:
+    - ad_dyndns_update | bool
+  notify:
+    - Handler for ad_integration to restart services

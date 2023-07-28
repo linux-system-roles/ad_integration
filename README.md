@@ -134,6 +134,58 @@ The name option identifies the connection profile to be configured by the networ
 
 Network connection type such as ethernet, bridge, bond...etc, the network role contains a list of possible values. Only applicable if `ad_integration_manage_dns` is true
 
+#### ad_dyndns_update
+
+If true, SSSD is configured to automatically update the AD DNS server with the IP address of the client.
+
+Default: false
+
+#### ad_dyndns_ttl
+
+Optional. The TTL, in seconds, to apply to the client's DNS record when updating it. Only applicable if `ad_dyndns_update` is true
+
+**Note:** This will override the TTL set by an administrator on the server.
+
+Default: 3600
+
+#### ad_dyndns_iface
+
+Optional. Interface or a list of interfaces whose IP addresses should be used for dynamic DNS updates. Special value "*" implies all IPs from all interfaces should be used. Only applicable if `ad_dyndns_update` is true
+
+Default: Use the IP addresses of the interface which is used for AD LDAP connection 
+
+#### ad_dyndns_refresh_interval
+
+Optional. How often should, in seconds, periodic DNS updates be performed in addition to when the back end goes online. Only applicable if `ad_dyndns_update` is true
+
+**Note:** lowest possible value is 60 seconds. If value less than 60 is specified sssd will assume lowest value only.
+
+Default: 86400
+
+#### ad_dyndns_update_ptr
+
+Optional. If true, the PTR record should also be explicitly updated. Only applicable if `ad_dyndns_update` is true
+
+Default: true
+
+#### ad_dyndns_force_tcp
+
+Optional. If true, the nsupdate utility should default to using TCP for communicating with the DNS server. Only applicable if `ad_dyndns_update` is true
+
+Default: false
+
+#### ad_dyndns_auth
+
+Optional. If true, GSS-TSIG authentication will be used for secure updates with the DNS server when updating A and AAAA records. Only applicable if `ad_dyndns_update` is true
+
+Default: true
+
+#### ad_dyndns_server
+
+Optional. DNS server to use when performing a DNS update when autodetection settings fail. Only applicable if `ad_dyndns_update` is true
+
+Default: None (let nsupdate choose the server)
+
 #### ad_integration_join_parameters
 
 Additional parameters (as a string) supplied directly to the realm join command.
