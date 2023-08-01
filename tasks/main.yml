@@ -189,24 +189,36 @@
     search("Already joined to this domain")
 
 - name: Configure dynamic DNS updates
-  blockinfile:
+  ini_file:
     path: /etc/sssd/sssd.conf
     state: present
-    block: |
-      dyndns_update = {{ ad_dyndns_update }}
-      dyndns_ttl = {{ ad_dyndns_ttl }}
-      {% if (ad_dyndns_iface is not none) -%}
-        dyndns_iface = {{ ad_dyndns_iface | string }}
-      {% endif %}
-      dyndns_refresh_interval = {{ ad_dyndns_refresh_interval }}
-      dyndns_update_ptr = {{ ad_dyndns_update_ptr }}
-      dyndns_force_tcp = {{ ad_dyndns_force_tcp }}
-      dyndns_auth = {{ 'GSS-TSIG' if (ad_dyndns_auth) else 'none' }}
-      {% if (ad_dyndns_server is not none) -%}
-        dyndns_server = {{  ad_dyndns_server | string }}
-      {% endif %}
-    insertafter: "use_fully_qualified_names"
+    section: "domain/{{ ad_integration_realm | lower }}"
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    create: true
+    owner: root
+    group: root
+    mode: 0600
+  loop:
+    - key: dyndns_update
+      value: "{{ ad_dyndns_update | string }}"
+    - key: dyndns_ttl
+      value: "{{ ad_dyndns_ttl | int }}"
+    - key: ad_dyndns_iface
+      value: "{{ ad_dyndns_iface | string if ad_dyndns_iface is not none }}"
+    - key: dyndns_refresh_interval
+      value: "{{ ad_dyndns_refresh_interval | int }}"
+    - key: dyndns_update_ptr
+      value: "{{ ad_dyndns_update_ptr | string }}"
+    - key: dyndns_force_tcp
+      value: "{{ ad_dyndns_force_tcp | string }}"
+    - key: dyndns_auth
+      value: "{{ 'GSS-TSIG' if ad_dyndns_auth else 'none' }}"
+    - key: ad_dyndns_server
+      value: "{{ ad_dyndns_server | string if ad_dyndns_server is not none }}"
   when:
     - ad_dyndns_update | bool
-  notify:
-    - Handler for ad_integration to restart services
+    - item.value is not none
+    - item.value != ''
+
+  notify: Handler for ad_integration to restart services
