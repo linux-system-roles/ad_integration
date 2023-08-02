@@ -204,7 +204,7 @@
       value: "{{ ad_dyndns_update | string }}"
     - key: dyndns_ttl
       value: "{{ ad_dyndns_ttl | int }}"
-    - key: ad_dyndns_iface
+    - key: dyndns_iface
       value: "{{ ad_dyndns_iface | string if ad_dyndns_iface is not none }}"
     - key: dyndns_refresh_interval
       value: "{{ ad_dyndns_refresh_interval | int }}"
@@ -214,7 +214,7 @@
       value: "{{ ad_dyndns_force_tcp | string }}"
     - key: dyndns_auth
       value: "{{ 'GSS-TSIG' if ad_dyndns_auth else 'none' }}"
-    - key: ad_dyndns_server
+    - key: dyndns_server
       value: "{{ ad_dyndns_server | string if ad_dyndns_server is not none }}"
   when:
     - ad_dyndns_update | bool
