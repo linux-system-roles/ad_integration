@@ -222,5 +222,26 @@
     - ad_dyndns_update | bool
     - item.value is not none
     - item.value != ''
+  notify: Handler for ad_integration to restart services
 
+# If dyndns_iface and/or dyndns_server previously had a configured value but are
+# now being set to `none` or `''`, remove the options form sssd.conf so sssd
+# will determine the default values.
+- name: Cleanup dynamic DNS configuration options
+  ini_file:
+    path: /etc/sssd/sssd.conf
+    state: absent
+    section: "domain/{{ ad_integration_realm | lower }}"
+    option: "{{ item.key }}"
+    owner: root
+    group: root
+    mode: 0600
+  loop:
+    - key: dyndns_iface
+      value: "{{ '' if ad_dyndns_iface is none else ad_dyndns_iface }}"
+    - key: dyndns_server
+      value: "{{ '' if ad_dyndns_server is none else ad_dyndns_server }}"
+  when:
+    - ad_dyndns_update | bool
+    - item.value is none or item.value == ''
   notify: Handler for ad_integration to restart services
