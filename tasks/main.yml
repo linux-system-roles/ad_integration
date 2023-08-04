@@ -205,7 +205,7 @@
     - key: dyndns_ttl
       value: "{{ ad_dyndns_ttl | int }}"
     - key: dyndns_iface
-      value: "{{ ad_dyndns_iface | string 
+      value: "{{ ad_dyndns_iface | string
         if ad_dyndns_iface is not none else '' }}"
     - key: dyndns_refresh_interval
       value: "{{ ad_dyndns_refresh_interval | int }}"
