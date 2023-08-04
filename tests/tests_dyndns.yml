@@ -1,0 +1,144 @@
+# SPDX-License-Identifier: MIT
+---
+
+# To run this test properly AD (ad1) needs to be present in the inventory
+# AD should be pre-configured as a dns for the client machine.
+# AD's DNS service should be configured with both forward and reverse zones
+# and the DNS records from any previous runs removed.
+
+# Example inventory:
+# [client]
+# client1 ansible_connection=local ansible_host=127.0.0.1 \
+#  ad_integration_join_to_dc="ad1.domain.com" \
+#  ad_integration_password=Secret123 ad_integration_realm="domain.com" \
+#  ad_dyndns_update=true
+# [ad]
+# ad1 ansible_host=<AD IP> ansible_connection=winrm ansible_password=Secret123\
+#  ansible_port=5986 ansible_user=Administrator \
+#  ansible_winrm_server_cert_validation=ignore
+
+- name: Ensure that the role configures dynamic dns
+  hosts: client
+  gather_facts: false  # test that role works in this case
+
+  tasks:
+    - name: Test - Run the system role with dumby vars
+      include_role:
+        name: linux-system-roles.ad_integration
+      vars:
+        ad_dyndns_iface: "TESTING"
+        ad_dyndns_server: 127.0.0.1
+
+    - name: Test - Verify sssd.conf options were written
+      block:
+        - name: Copy sssd.conf file from host to local /tmp/
+          fetch:
+            src: /etc/sssd/sssd.conf
+            dest: /tmp/
+            flat: true
+          changed_when: false
+        - name: Assert sssd.conf options were written
+          assert:
+            that:
+              - "{{ lookup('ini', 'dyndns_update', section='domain/' +
+                ad_integration_realm | lower, file='/tmp/sssd.conf') }} == True"
+              - "{{ lookup('ini', 'dyndns_ttl', section='domain/' +
+                ad_integration_realm | lower, file='/tmp/sssd.conf') }} == 3600"
+              - "'{{ lookup('ini', 'dyndns_iface', section='domain/' +
+                ad_integration_realm | lower, file='/tmp/sssd.conf') }}'
+                == 'TESTING'"
+              - "{{ lookup('ini', 'dyndns_refresh_interval', section='domain/' +
+                ad_integration_realm | lower, file='/tmp/sssd.conf') }}
+                == 86400"
+              - "{{ lookup('ini', 'dyndns_update_ptr', section='domain/' +
+                ad_integration_realm | lower, file='/tmp/sssd.conf') }} == True"
+              - "{{ lookup('ini', 'dyndns_force_tcp', section='domain/' +
+                ad_integration_realm | lower, file='/tmp/sssd.conf') }}
+                == false"
+              - "'{{ lookup('ini', 'dyndns_auth', section='domain/' +
+                ad_integration_realm | lower, file='/tmp/sssd.conf') }}'
+                == 'GSS-TSIG'"
+              - "'{{ lookup('ini', 'dyndns_server', section='domain/' +
+                ad_integration_realm | lower, file='/tmp/sssd.conf') }}'
+                == '127.0.0.1'"
+        - name: Remove /tmp/sssd.conf
+          file:
+            path: /tmp/sssd.conf
+            state: absent
+          changed_when: false
+
+    - name: Test - Check sssd.log for unsupported options
+      block:
+        - name: Search /var/log/sssd/sssd.log for [sss_ini_call_validators]
+          # noqa: command-instead-of-shell
+          shell: "grep -i 'sss_ini_call_validators' /var/log/sssd/sssd.log"
+          register: sssd_log
+          changed_when: false
+          failed_when: false
+        - name: Fail if signature found
+          fail:
+            msg: Appears to be an unsupported option in /etc/sssd/sssd.conf
+          when: sssd_log.stdout | length > 0
+
+    - name: Test - Re-run the system role to remove vars
+      block:
+        - name: Rerun system role
+          include_role:
+            name: linux-system-roles.ad_integration
+          vars:
+            ad_dyndns_iface: null
+            ad_dyndns_server: null
+        - name: Restart sssd
+          service:
+            name: sssd
+            state: restarted
+
+    - name: Test - Verify sssd.conf options were removed
+      block:
+        - name: Copy sssd.conf file from host to local /tmp/
+          fetch:
+            src: /etc/sssd/sssd.conf
+            dest: /tmp/
+            flat: true
+          changed_when: false
+        - name: Assert sssd.conf options were removed
+          assert:
+            that:
+              - "'{{ lookup('ini', 'dyndns_iface', default='removed',
+                section='domain/' + ad_integration_realm | lower,
+                file='/tmp/sssd.conf') }}' == 'removed'"
+              - "'{{ lookup('ini', 'dyndns_server', default='removed',
+                section='domain/' + ad_integration_realm | lower,
+                file='/tmp/sssd.conf') }}' == 'removed'"
+        - name: Remove /tmp/sssd.conf
+          file:
+            path: /tmp/sssd.conf
+            state: absent
+          changed_when: false
+
+    - name: Test - Verify IPv4 DNS records were created
+      block:
+        - name: Gather facts
+          setup:
+        # I am executing dig via shell instead of using the dig lookup because
+        # in my situation my ansible control host is on a different network and
+        # DNS than the VMs I am testing against.
+        - name: Get IP for host's FQDN
+          # noqa: command-instead-of-shell
+          shell: "dig +short {{ ansible_fqdn }} A"
+          register: dig_hostname
+          changed_when: false
+          failed_when: false
+        - name: Get hostname for host's IP address
+          # noqa: command-instead-of-shell
+          shell: "dig +short -x {{ ansible_default_ipv4.address }} PTR"
+          register: dig_ip
+          changed_when: false
+          failed_when: false
+        - name: Assert IPv4 DNS records were created
+          assert:
+            that:
+              - "'{{ dig_hostname.stdout }}' ==
+                '{{ ansible_default_ipv4.address }}'"
+              - "'{{ dig_ip.stdout }}' == '{{ ansible_fqdn }}.'"
+          when: ansible_default_ipv4.address is defined
