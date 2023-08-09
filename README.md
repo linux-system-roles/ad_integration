@@ -16,7 +16,7 @@ Administrator user as the security footprint of this user is too large.
 See [Delegated Permissions](https://www.mankier.com/8/adcli#Delegated_Permissions)
 for the explicit permissions a user must have.
 
-Time must be in sync with Active Directory servers.  The ad_integration role will use the timesync system role for this if the user specifies `ad_integration_manage_timesync` to true and provides a value for `ad_integration_timesync_source` to use as a timesource.
+Time must be in sync with Active Directory servers. The ad_integration role will use the timesync system role for this if the user specifies `ad_integration_manage_timesync` to true and provides a value for `ad_integration_timesync_source` to use as a timesource.
 
 RHEL8 (and newer) and Fedora no longer support RC4 encryption out of the box, it is recommended to enable AES in Active Directory, if not possible then the AD-SUPPORT crypto policy must be enabled.  The integration role will use the crypto_policies system role for this if the user sets the `ad_integration_manage_crypto_policies` and `ad_integration_allow_rc4_crypto` parameters to true.
 
@@ -41,7 +41,7 @@ The following firewall ports must be opened on the AD server side, reachable fro
 This role requires the `ini_file` module from `community.general`.  If you are
 using `ansible-core` you must install that collection.
 
-```
+```bash
 ansible-galaxy collection install -vv -r meta/collection-requirements.yml
 ```
 
@@ -164,7 +164,7 @@ Default: 3600
 
 Optional. Interface or a list of interfaces whose IP addresses should be used for dynamic DNS updates. Special value "*" implies all IPs from all interfaces should be used. Only applicable if `ad_dyndns_update` is true
 
-Default: Use the IP addresses of the interface which is used for AD LDAP connection 
+Default: Use the IP addresses of the interface which is used for AD LDAP connection
 
 #### ad_dyndns_refresh_interval
 
@@ -226,4 +226,4 @@ MIT.
 
 ## Author Information
 
-Justin Stephenson (jstephen@redhat.com)
+Justin Stephenson (<jstephen@redhat.com>)
