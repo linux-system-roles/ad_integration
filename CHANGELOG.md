@@ -1,6 +1,17 @@
 Changelog
 =========
 
+[1.2.1] - 2023-08-21
+--------------------
+
+### Bug Fixes
+
+- fix: use command stdin for password, and do not log password (#51)
+
+### Other Changes
+
+- ci: Add markdownlint, test_html_build, and build_docs workflows (#49)
+
 [1.2.0] - 2023-08-11
 --------------------
 
