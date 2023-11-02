@@ -237,6 +237,20 @@
     - item.value != ''
   notify: Handler for ad_integration to restart services
 
+- name: Configure custom SSSD settings
+  community.general.ini_file:
+    path: /etc/sssd/sssd.conf
+    state: present
+    section: "domain/{{ ad_integration_realm | lower }}"
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    create: true
+    owner: root
+    group: root
+    mode: u=rw,g=,o=
+  loop: "{{ ad_integration_sssd_custom_settings }}"
+  notify: Handler for ad_integration to restart services
+
 # If dyndns_iface and/or dyndns_server previously had a configured value but are
 # now being set to `none` or `''`, remove the options form sssd.conf so sssd
 # will determine the default values.
