@@ -207,6 +207,19 @@ Useful if some specific configuration like --user-principal=host/name@REALM or -
 See man realm for details.
 Example: ad_integration_join_parameters: "--user-principal host/client007@EXAMPLE.COM"
 
+
+#### ad_integration_sssd_custom_settings
+
+A list of custom setting to be included into the [domain/<REALM>] section
+of the sssd.conf file. See sssd.conf man pages for details.
+ 
+Example:
+```yaml
+ad_integration_sssd_custom_settings:
+ - key: "configuration_name"
+   value: "configuration_value"
+```
+
 ## Example Playbook
 
 The following is an example playbook to setup direct Active Directory integration with AD domain `domain.example.com`, the join will be performed with user Administrator using the vault stored password. Prior to the join, the crypto policy for AD SUPPORT with RC4 encryption allowed will be set.

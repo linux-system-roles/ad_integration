@@ -130,3 +130,9 @@ ad_dyndns_server: null
 # Any additional parameters passed to realm join command
 # Useful for passing things like --user-principal etc.
 ad_integration_join_parameters: ""
+
+# A list of custom setting to be included into the [domain/<REALM>] section
+# of the sssd.conf file. The list will be composed of two entry:
+# - key: "configuration_name"
+#   value: "configuration_value"
+ad_integration_sssd_custom_settings: []
