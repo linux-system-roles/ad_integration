@@ -196,7 +196,7 @@
     search("Already joined to this domain")
 
 - name: Configure dynamic DNS updates
-  ini_file:
+  community.general.ini_file:
     path: /etc/sssd/sssd.conf
     state: present
     section: "domain/{{ ad_integration_realm | lower }}"
@@ -205,7 +205,7 @@
     create: true
     owner: root
     group: root
-    mode: 0600
+    mode: u=rw,g=,o=
   loop:
     - key: dyndns_update
       value: "{{ ad_dyndns_update | string }}"
@@ -248,7 +248,7 @@
     option: "{{ item.key }}"
     owner: root
     group: root
-    mode: 0600
+    mode: u=rw,g=,o=
   loop:
     - key: dyndns_iface
       value: "{{ '' if ad_dyndns_iface is none else ad_dyndns_iface }}"
