@@ -115,10 +115,12 @@ ad_dyndns_update_ptr: true
 # Only applicable if `ad_dyndns_update` is true
 ad_dyndns_force_tcp: false
 
-# Optional. If true, GSS-TSIG authentication will be used for secure updates
+# Optional. GSS-TSIG authentication is used for secure updates
 # with the DNS server when updating A and AAAA records.
+# Valid values are "GSS-TSIG" or "none" allowing unsecure updates.
+# The default value in sssd is 'GSS-TSIG'.
 # Only applicable if `ad_dyndns_update` is true
-ad_dyndns_auth: true
+ad_dyndns_auth: null
 
 # Optional. DNS server to use when performing a DNS update when autodetection
 # settings fail.
