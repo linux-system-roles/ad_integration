@@ -28,6 +28,7 @@
       vars:
         ad_dyndns_iface: "TESTING"
         ad_dyndns_server: 127.0.0.1
+        ad_dyndns_auth: "GSS-TSIG"
 
     - name: Test - Verify sssd.conf options were written
       block:

@@ -221,10 +221,16 @@
     - key: dyndns_force_tcp
       value: "{{ ad_dyndns_force_tcp | string }}"
     - key: dyndns_auth
-      value: "{{ 'GSS-TSIG' if ad_dyndns_auth else 'none' }}"
+      value: "{{ ad_dyndns_auth | string if ad_dyndns_auth else '' }}"
     - key: dyndns_server
       value: "{{ ad_dyndns_server | string
         if ad_dyndns_server is not none else '' }}"
+    # For dynamic dns to work the machine either needs fqdn in hostname
+    # or ad_hostname needs to be defined.
+    - key: ad_hostname
+      value: "{{ ansible_hostname + '.' + ad_integration_realm | lower
+        | string if '.' not in ansible_hostname else '' }}"
+
   when:
     - ad_dyndns_update | bool
     - item.value is not none
