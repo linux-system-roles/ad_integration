@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: MIT
+---
+
+- name: Ensure that the role configures dynamic dns
+  hosts: all,!ad
+  gather_facts: false  # test that role works in this case
+  vars:
+    ad_integration_sssd_custom_settings:
+      - key: "auth_provider_test"
+        value: "ad"
+      - key: "override_shell_test"
+        value: "/bin/bash"
+
+  tasks:
+    - name: Test - Run the system role with dumby vars
+      ansible.builtin.include_role:
+        name: linux-system-roles.ad_integration
+
+    - name: Test - Verify sssd.conf custom settings were written
+      block:
+        - name: Copy sssd.conf file from host to local /tmp/
+          ansible.builtin.fetch:
+            src: /etc/sssd/sssd.conf
+            dest: /tmp/
+            flat: true
+          changed_when: false
+        - name: Assert sssd.conf options were written
+          ansible.builtin.assert:
+            that:
+              - "{{ lookup('ini', item.key, section='domain/' +
+                ad_integration_realm | lower, file='/tmp/sssd.conf') | tojson }}
+                == {{ item.value | tojson }}"
+          loop: "{{ ad_integration_sssd_custom_settings }}"
+        - name: Remove /tmp/sssd.conf
+          ansible.builtin.file:
+            path: /tmp/sssd.conf
+            state: absent
+          changed_when: false
+
+    - name: Test - Check sssd.log for unsupported options
+      block:
+        - name: Search /var/log/sssd/sssd.log for [sss_ini_call_validators]
+          # noqa: command-instead-of-shell
+          ansible.builtin.command: |
+            "grep -i 'sss_ini_call_validators' /var/log/sssd/sssd.log"
+          register: sssd_log
+          changed_when: false
+          failed_when: false
+        - name: Fail if signature found
+          ansible.builtin.fail:
+            msg: Appears to be an unsupported option in /etc/sssd/sssd.conf
+          when: sssd_log.stdout | length > 0
+
+    - name: Test - Re-run the system role to remove vars
+      block:
+        - name: Rerun system role
+          ansible.builtin.include_role:
+            name: linux-system-roles.ad_integration
+          vars:
+            ad_integration_sssd_custom_settings: null
+        - name: Restart sssd
+          ansible.builtin.service:
+            name: sssd
+            state: restarted
+
+    - name: Test - Verify sssd.conf options were removed
+      block:
+        - name: Copy sssd.conf file from host to local /tmp/
+          ansible.builtin.fetch:
+            src: /etc/sssd/sssd.conf
+            dest: /tmp/
+            flat: true
+          changed_when: false
+        - name: Assert sssd.conf options were removed
+          ansible.builtin.assert:
+            that:
+              - "{{ lookup('ini', item.key, default='removed',
+                section='domain/' + ad_integration_realm | lower,
+                file='/tmp/sssd.conf') | tojson }} == {{ 'removed' | tojson }}"
+          loop: "{{ ad_integration_sssd_custom_settings }}"
+        - name: Remove /tmp/sssd.conf
+          ansible.builtin.file:
+            path: /tmp/sssd.conf
+            state: absent
+          changed_when: false
