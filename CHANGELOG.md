@@ -1,6 +1,17 @@
 Changelog
 =========
 
+[1.2.3] - 2023-11-08
+--------------------
+
+### Other Changes
+
+- build(deps): bump actions/checkout from 3 to 4 (#56)
+- ci: ensure dependabot git commit message conforms to commitlint (#59)
+- ci: use dump_packages.py callback to get packages used by role (#61)
+- ci: tox-lsr version 3.1.1 (#63)
+- ci: Add full integration test for dyndns (#65)
+
 [1.2.2] - 2023-09-08
 --------------------
 
