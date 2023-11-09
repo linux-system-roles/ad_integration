@@ -12,7 +12,7 @@
         value: "/bin/bash"
 
   tasks:
-    - name: Test - Run the system role with dumby vars
+    - name: Test - Run the system role with bogus vars
       ansible.builtin.include_role:
         name: linux-system-roles.ad_integration
 
