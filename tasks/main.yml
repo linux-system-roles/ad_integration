@@ -240,7 +240,7 @@
 - name: Configure custom SSSD settings
   community.general.ini_file:
     path: /etc/sssd/sssd.conf
-    state: "{{ item.state | default 'present' }}"
+    state: "{{ item.state | default('present') }}"
     section: "domain/{{ ad_integration_realm | lower }}"
     option: "{{ item.key }}"
     value: "{{ item.value }}"
