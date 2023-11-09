@@ -209,7 +209,7 @@ Example: ad_integration_join_parameters: "--user-principal host/client007@EXAMPL
 
 #### ad_integration_sssd_custom_settings
 
-A list of custom setting to be included into the [domain/<REALM>] section
+A list of custom setting to be included into the `[domain/$REALM]` section
 of the sssd.conf file. See sssd.conf man pages for details.
 Example:
 
