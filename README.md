@@ -213,7 +213,6 @@ A list of custom setting to be included into the `[domain/$REALM]` section
 of the sssd.conf file. See sssd.conf man pages for details.
 Example:
 
-
 ```yaml
 ad_integration_sssd_custom_settings:
   - key: "configuration_name"
