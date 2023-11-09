@@ -216,7 +216,7 @@ Example:
 
 ```yaml
 ad_integration_sssd_custom_settings:
- - key: "configuration_name"
+  - key: "configuration_name"
    value: "configuration_value"
 ```
 
