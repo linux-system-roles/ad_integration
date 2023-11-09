@@ -51,13 +51,26 @@
             msg: Appears to be an unsupported option in /etc/sssd/sssd.conf
           when: sssd_log.stdout | length > 0
 
+    - name: Test - Re-Build a list of settings with state=absent
+      ansible.builtin.set_fact:
+        update_list: "{{ update_list + update }}"
+      loop: "{{ ad_integration_sssd_custom_settings }}"
+      loop_control:
+        index_var: idx
+      vars:
+        update_list: []
+        update:
+          - key: "{{ item['key'] }}"
+            value: "{{ item['value'] }}"
+            state: absent
+
     - name: Test - Re-run the system role to remove vars
       block:
         - name: Rerun system role
           ansible.builtin.include_role:
             name: linux-system-roles.ad_integration
           vars:
-            ad_integration_sssd_custom_settings: null
+            ad_integration_sssd_custom_settings: "{{ update_list }}"
         - name: Restart sssd
           ansible.builtin.service:
             name: sssd
