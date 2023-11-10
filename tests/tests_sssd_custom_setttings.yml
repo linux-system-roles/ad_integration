@@ -73,7 +73,6 @@
             name: linux-system-roles.ad_integration
           vars:
             ad_integration_sssd_custom_settings: "{{ update_list }}"
-        - name: Restart sssd
           ansible.builtin.service:
             name: sssd
             state: restarted
