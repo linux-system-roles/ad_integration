@@ -73,7 +73,6 @@
             name: linux-system-roles.ad_integration
           vars:
             ad_integration_sssd_custom_settings: "{{ update_list }}"
-            state: restarted
 
     - name: Test - Verify sssd.conf options were removed
       block:
