@@ -5,6 +5,8 @@
   hosts: all,!ad
   gather_facts: false  # test that role works in this case
   vars:
+    ad_integration_realm: sample-realm.com
+    __ad_integration_test_sssd_config_only: true
     ad_integration_sssd_custom_settings:
       - key: "auth_provider_test"
         value: "ad"
