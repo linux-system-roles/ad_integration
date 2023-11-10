@@ -57,7 +57,8 @@
       ansible.windows.win_command: >-
         dnscmd.exe /config {{ network_ad }} /allowupdate 1
     - name: Disable dns forwarders
-      ansible.windows.win_command: dnscmd.exe /config /norecursion 1
+      # noqa: fqcn[action]
+      win_command: dnscmd.exe /config /norecursion 1
 
 - name: Ensure that the role configures dynamic dns
   hosts: client
@@ -79,20 +80,9 @@
             ad_dyndns_auth: "none"
             ad_dyndns_update: true
             ad_dyndns_refresh_interval: 60
-        - name: Apply additional changes on sssd
-          ini_file:
-            path: /etc/sssd/sssd.conf
-            state: present
-            section: "domain/{{ ad_integration_realm | lower }}"
-            option: "{{ item.key }}"
-            value: "{{ item.value }}"
-            create: true
-            owner: root
-            group: root
-            mode: 0600
-          loop:
-            - key: debug_level
-              value: 9
+            ad_integration_sssd_custom_settings:
+              - key: debug_level
+                value: 9
         - name: Clean sssd log
           command: >-
             truncate -s 0  /var/log/sssd/sssd_{{ ad_integration_realm }}.log
@@ -105,7 +95,7 @@
         - name: Pause for 5 to give sssd chance to refresh dn record on AD
           ansible.builtin.pause:
             minutes: 5
-        - name: Check sssd log fo dydndns update info
+        - name: Check sssd log for dydndns update info
           command: >-
             grep -A 20 "nsupdate"
             /var/log/sssd/sssd_{{ ad_integration_realm }}.log
@@ -148,7 +138,8 @@
           AD network: {{ network_ad }}, Client IP:
           {{ hostvars[groups['client'][0]].ansible_host }}
     - name: List all AD zones
-      ansible.windows.win_command: dnscmd.exe /EnumZones
+      # noqa: fqcn[action]
+      win_command: dnscmd.exe /EnumZones
       register: zones
       failed_when: false
     - name: Grab AD zone

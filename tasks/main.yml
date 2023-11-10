@@ -255,7 +255,7 @@
 # now being set to `none` or `''`, remove the options form sssd.conf so sssd
 # will determine the default values.
 - name: Cleanup dynamic DNS configuration options
-  ini_file:
+  community.general.ini_file:
     path: /etc/sssd/sssd.conf
     state: absent
     section: "domain/{{ ad_integration_realm | lower }}"
