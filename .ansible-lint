@@ -23,6 +23,6 @@ exclude_paths:
 mock_modules:
   - win_domain_group
   - win_domain_user
-  - ini_file
+  - community.general.ini_file
 mock_roles:
   - linux-system-roles.ad_integration
