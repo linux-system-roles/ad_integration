@@ -203,6 +203,8 @@ id="toc-ad_dyndns_auth">ad_dyndns_auth</a></li>
 id="toc-ad_dyndns_server">ad_dyndns_server</a></li>
 <li><a href="#ad_integration_join_parameters"
 id="toc-ad_integration_join_parameters">ad_integration_join_parameters</a></li>
+<li><a href="#ad_integration_sssd_custom_settings"
+id="toc-ad_integration_sssd_custom_settings">ad_integration_sssd_custom_settings</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#example-playbook" id="toc-example-playbook">Example
@@ -463,21 +465,30 @@ join command. Useful if some specific configuration like
 for details. Example: ad_integration_join_parameters: "--user-principal
 host/<a
 href="mailto:client007@EXAMPLE.COM">client007@EXAMPLE.COM</a>"</p>
+<h3
+id="ad_integration_sssd_custom_settings">ad_integration_sssd_custom_settings</h3>
+<p>A list of custom setting to be included into the
+<code>[domain/$REALM]</code> section of the sssd.conf file. See
+sssd.conf man pages for details. Example:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_custom_settings</span><span class="kw">:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">key</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_name&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">value</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_value&quot;</span></span></code></pre></div>
 <h1 id="example-playbook">Example Playbook</h1>
 <p>The following is an example playbook to setup direct Active Directory
 integration with AD domain <code>domain.example.com</code>, the join
 will be performed with user Administrator using the vault stored
 password. Prior to the join, the crypto policy for AD SUPPORT with RC4
 encryption allowed will be set.</p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;domain.example.com&quot;</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> !vault | …vault encrypted password…</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_manage_crypto_policies</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_allow_rc4_crypto</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">roles</span><span class="kw">:</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> linux-system-roles.ad_integration</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;domain.example.com&quot;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> !vault | …vault encrypted password…</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_manage_crypto_policies</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_allow_rc4_crypto</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">roles</span><span class="kw">:</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> linux-system-roles.ad_integration</span></span></code></pre></div>
 <h1 id="license">License</h1>
 <p>MIT.</p>
 <h1 id="author-information">Author Information</h1>
