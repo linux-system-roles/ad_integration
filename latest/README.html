@@ -209,6 +209,7 @@ id="toc-ad_integration_sssd_custom_settings">ad_integration_sssd_custom_settings
 </ul></li>
 <li><a href="#example-playbook" id="toc-example-playbook">Example
 Playbook</a></li>
+<li><a href="#rpm-ostree" id="toc-rpm-ostree">rpm-ostree</a></li>
 <li><a href="#license" id="toc-license">License</a></li>
 <li><a href="#author-information" id="toc-author-information">Author
 Information</a></li>
@@ -312,14 +313,10 @@ reachable from the Linux client.</p>
 </tbody>
 </table>
 <h2 id="collection-requirements">Collection requirements</h2>
-<p>This role requires the <code>ini_file</code> module from
-<code>community.general</code>. If you are using
-<code>ansible-core</code> you must install that collection.</p>
+<p>This role requires additional modules from external collections.
+Please use the following command to install them:</p>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ansible-galaxy</span> collection install <span class="at">-vv</span> <span class="at">-r</span> meta/collection-requirements.yml</span></code></pre></div>
-<p>If you are using Ansible Engine 2.9, or are using an Ansible bundle
-which includes these collections/modules, you should have to do
-nothing.</p>
 <h1 id="role-variables">Role Variables</h1>
 <h2 id="required-variables">Required variables</h2>
 <h3 id="ad_integration_realm">ad_integration_realm</h3>
@@ -489,6 +486,8 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_allow_rc4_crypto</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">roles</span><span class="kw">:</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> linux-system-roles.ad_integration</span></span></code></pre></div>
+<h1 id="rpm-ostree">rpm-ostree</h1>
+<p>See README-ostree.md</p>
 <h1 id="license">License</h1>
 <p>MIT.</p>
 <h1 id="author-information">Author Information</h1>
