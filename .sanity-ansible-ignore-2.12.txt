@@ -1,0 +1,1 @@
+roles/ad_integration/.ostree/get_ostree_data.sh shebang!skip
