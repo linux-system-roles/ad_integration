@@ -40,15 +40,12 @@ The following firewall ports must be opened on the AD server side, reachable fro
 
 ### Collection requirements
 
-This role requires the `ini_file` module from `community.general`.  If you are
-using `ansible-core` you must install that collection.
+This role requires additional modules from external collections.  Please use the
+following command to install them:
 
 ```bash
 ansible-galaxy collection install -vv -r meta/collection-requirements.yml
 ```
-
-If you are using Ansible Engine 2.9, or are using an Ansible bundle which
-includes these collections/modules, you should have to do nothing.
 
 ## Role Variables
 
@@ -233,6 +230,10 @@ The following is an example playbook to setup direct Active Directory integratio
   roles:
     - linux-system-roles.ad_integration
 ```
+
+## rpm-ostree
+
+See README-ostree.md
 
 ## License
 
