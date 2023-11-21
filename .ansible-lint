@@ -21,7 +21,6 @@ exclude_paths:
   - .markdownlint.yaml
   - examples/roles/
 mock_modules:
-  - ansible.utils.update_fact
   - win_domain_group
   - win_domain_user
   - community.general.ini_file
