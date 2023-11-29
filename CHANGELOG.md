@@ -1,6 +1,18 @@
 Changelog
 =========
 
+[1.3.0] - 2023-11-29
+--------------------
+
+### New Features
+
+- feat: Add sssd custom settings (#64)
+- feat: support for ostree systems (#68)
+
+### Other Changes
+
+- refactor: use the ini_file module to test sssd.conf (#67)
+
 [1.2.3] - 2023-11-08
 --------------------
 
