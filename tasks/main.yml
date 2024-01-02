@@ -197,6 +197,20 @@
   changed_when: not __realm_join_output.stderr is
     search("Already joined to this domain")
 
+- name: Configure SSSD settings
+  community.general.ini_file:
+    path: /etc/sssd/sssd.conf
+    state: "{{ item.state | default('present') }}"
+    section: "sssd"
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    create: true
+    owner: root
+    group: root
+    mode: u=rw,g=,o=
+  loop: "{{ ad_integration_sssd_settings }}"
+  notify: Handler for ad_integration to restart services
+
 - name: Configure dynamic DNS updates
   community.general.ini_file:
     path: /etc/sssd/sssd.conf
