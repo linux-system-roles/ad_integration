@@ -209,7 +209,7 @@
     group: root
     mode: u=rw,g=,o=
   loop: "{{ ad_integration_sssd_settings }}"
-  notify: Handler for ad_integration to restart services
+  notify: Handler for ad_integration to restart services - sssd
 
 - name: Configure dynamic DNS updates
   community.general.ini_file:
@@ -251,7 +251,7 @@
     - ad_dyndns_update | bool
     - item.value is not none
     - item.value != ''
-  notify: Handler for ad_integration to restart services
+  notify: Handler for ad_integration to restart services - sssd
 
 - name: Configure custom SSSD settings
   community.general.ini_file:
@@ -265,7 +265,7 @@
     group: root
     mode: u=rw,g=,o=
   loop: "{{ ad_integration_sssd_custom_settings }}"
-  notify: Handler for ad_integration to restart services
+  notify: Handler for ad_integration to restart services - sssd
 
 # If dyndns_iface and/or dyndns_server previously had a configured value but are
 # now being set to `none` or `''`, remove the options form sssd.conf so sssd
@@ -287,4 +287,4 @@
   when:
     - ad_dyndns_update | bool
     - item.value is none or item.value == ''
-  notify: Handler for ad_integration to restart services
+  notify: Handler for ad_integration to restart services - sssd
