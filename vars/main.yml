@@ -10,6 +10,7 @@ __ad_integration_packages:
   - realmd
   - PackageKit
 __ad_integration_services: [realmd]
+__ad_integration_services_sssd: [sssd]
 # ansible_facts required by the role
 __ad_integration_required_facts:
   - distribution
