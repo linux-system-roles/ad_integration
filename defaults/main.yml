@@ -131,6 +131,12 @@ ad_dyndns_server: null
 # Useful for passing things like --user-principal etc.
 ad_integration_join_parameters: ""
 
+# A list of setting to be included into the [sssd] section
+# of the sssd.conf file. The list will be composed of two entry:
+# - key: "configuration_name"
+#   value: "configuration_value"
+ad_integration_sssd_settings: []
+
 # A list of custom setting to be included into the [domain/<REALM>] section
 # of the sssd.conf file. The list will be composed of two entry:
 # - key: "configuration_name"
