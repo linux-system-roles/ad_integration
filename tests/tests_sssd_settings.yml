@@ -8,7 +8,7 @@
     ad_integration_realm: sample-realm.com
     __ad_integration_test_sssd_config_only: true
     ad_integration_sssd_settings:
-      - key: reconnection_retries 
+      - key: reconnection_retries
         value: 5
       - key: default_domain_suffix
         value: addomain.xyz
@@ -54,7 +54,7 @@
       include_role:
         name: linux-system-roles.ad_integration
       vars:
-        ad_integration_sssd_custom_settings: "{{ update_list }}"
+        ad_integration_sssd_settings: "{{ update_list }}"
 
     - name: Check custom SSSD settings
       community.general.ini_file:
