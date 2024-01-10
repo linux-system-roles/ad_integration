@@ -228,6 +228,13 @@ ad_integration_sssd_custom_settings:
     value: "configuration_value"
 ```
 
+#### ad_integration_preserve_authselect_profile
+
+This is a boolean, default is `false`.  If `true`, configure realmd.conf to
+remove the `authselect` command from `sssd-enable-logins` to avoid overwriting
+previous PAM/nsswitch changes, until
+[RHEL-5101](https://issues.redhat.com/browse/RHEL-5101) is addressed.
+
 ## Example Playbook
 
 The following is an example playbook to setup direct Active Directory integration with AD domain `domain.example.com`, the join will be performed with user Administrator using the vault stored password. Prior to the join, the crypto policy for AD SUPPORT with RC4 encryption allowed will be set.
