@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: MIT
+---
+
+- name: Ensure that the role configures dynamic dns
+  hosts: all,!ad
+  gather_facts: false  # test that role works in this case
+  vars:
+    ad_integration_realm: sample-realm.com
+    __ad_integration_test_sssd_config_only: true
+    ad_integration_sssd_settings:
+      - key: reconnection_retries
+        value: 5
+      - key: default_domain_suffix
+        value: addomain.xyz
+
+  tasks:
+    - name: Test - Run the system role with bogus vars
+      include_role:
+        name: linux-system-roles.ad_integration
+
+    - name: Check SSSD settings
+      community.general.ini_file:
+        path: /etc/sssd/sssd.conf
+        state: "{{ item.state | default('present') }}"
+        section: sssd
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ ad_integration_sssd_settings }}"
+      register: __result
+      failed_when: __result is changed
+
+    - name: Search /var/log/sssd/sssd.log for [sss_ini_call_validators]
+      command: >-
+        grep -i sss_ini_call_validators /var/log/sssd/sssd.log
+      register: sssd_log
+      changed_when: false
+      failed_when: false
+
+    - name: Fail if signature found
+      fail:
+        msg: Appears to be an unsupported option in /etc/sssd/sssd.conf
+      when: sssd_log.stdout | length > 0
+
+    - name: Test - Re-Build a list of settings with state=absent
+      set_fact:
+        update_list: "{{ ad_integration_sssd_settings |
+          map('combine', {'state': 'absent'}) | list }}"
+
+    - name: Test - Re-run the system role to remove vars
+      include_role:
+        name: linux-system-roles.ad_integration
+      vars:
+        ad_integration_sssd_settings: "{{ update_list }}"
+
+    - name: Check custom SSSD settings
+      community.general.ini_file:
+        path: /etc/sssd/sssd.conf
+        state: "{{ item.state | default('present') }}"
+        section: sssd
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ update_list }}"
+      register: __result
+      failed_when: __result is changed
