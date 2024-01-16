@@ -142,3 +142,8 @@ ad_integration_sssd_settings: []
 # - key: "configuration_name"
 #   value: "configuration_value"
 ad_integration_sssd_custom_settings: []
+
+# If `true`, configure realmd.conf to remove the `authselect` command from
+# `sssd-enable-logins` to avoid overwriting previous PAM/nsswitch changes, until
+# https://issues.redhat.com/browse/RHEL-5101 is addressed.
+ad_integration_preserve_authselect_profile: false
