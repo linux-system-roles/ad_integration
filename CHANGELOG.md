@@ -1,6 +1,19 @@
 Changelog
 =========
 
+[1.4.0] - 2024-01-16
+--------------------
+
+### New Features
+
+- feat: Add SSSD parameters support (#76)
+- feat: add ad_integration_preserve_authselect_profile (#79)
+
+### Other Changes
+
+- ci: fix ansible-lint 2.16 and ansible-test 2.16 issues (#74)
+- ci: Use supported ansible-lint action; run ansible-lint against the collection (#77)
+
 [1.3.1] - 2023-12-08
 --------------------
 
