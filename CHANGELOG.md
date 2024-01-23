@@ -1,6 +1,13 @@
 Changelog
 =========
 
+[1.4.1] - 2024-01-23
+--------------------
+
+### Other Changes
+
+- ci: Add a basic test for ad_integration_preserve_authselect_profile (#81)
+
 [1.4.0] - 2024-01-16
 --------------------
 
