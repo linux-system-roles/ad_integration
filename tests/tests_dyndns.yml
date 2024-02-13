@@ -19,6 +19,7 @@
 
 - name: Ensure that the role configures dynamic dns
   hosts: all,!ad
+  gather_facts: false
   vars:
     # if we don't have a real AD server, just verify the config
     # file is written properly
