@@ -1,6 +1,17 @@
 Changelog
 =========
 
+[1.4.2] - 2024-02-14
+--------------------
+
+### Bug Fixes
+
+- fix: Add default_ipv4 to required_facts to gather ansible_hostname (#84)
+
+### Other Changes
+
+- ci: fix python unit test - copy pytest config to tests/unit (#83)
+
 [1.4.1] - 2024-01-23
 --------------------
 
