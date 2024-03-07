@@ -9,6 +9,10 @@
     ad_integration_password: Secret123
 
   tasks:
+    - name: Set test realm
+      set_fact:
+        __ad_integration_sample_realm: MiXeD.cAsE
+
     - name: Test - Run the system role
       include_role:
         name: linux-system-roles.ad_integration
@@ -35,3 +39,9 @@
       vars:
         __file: /etc/realmd.conf
         __fingerprint: "system_role:ad_integration"
+
+    - name: Check that realm name is all lower case
+      command: >-
+        grep -xF "[{{ __ad_integration_sample_realm | lower }}]"
+        /etc/realmd.conf
+      changed_when: false
