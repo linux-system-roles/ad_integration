@@ -1,6 +1,18 @@
 Changelog
 =========
 
+[1.4.3] - 2024-03-08
+--------------------
+
+### Bug Fixes
+
+- fix: Sets domain name lower case in realmd.conf section header (#88)
+
+### Other Changes
+
+- ci: bump ansible/ansible-lint from 6 to 24 (#86)
+- test: test for lower case realm in realmd.conf (#89)
+
 [1.4.2] - 2024-02-14
 --------------------
 
