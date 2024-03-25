@@ -3,4 +3,4 @@
 collections:
   - community.windows
   - ansible.windows
-  - community.general
+  - microsoft.ad
