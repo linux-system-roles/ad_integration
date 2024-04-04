@@ -1,6 +1,14 @@
 Changelog
 =========
 
+[1.4.4] - 2024-04-04
+--------------------
+
+### Other Changes
+
+- test: Replace deprecated community.windows.win_domain_user and group modules (#91)
+- ci: bump mathieudutour/github-tag-action from 6.1 to 6.2 (#92)
+
 [1.4.3] - 2024-03-08
 --------------------
 
@@ -95,7 +103,6 @@ Changelog
   
   Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
 
-
 [1.2.2] - 2023-09-08
 --------------------
 
@@ -115,7 +122,6 @@ Changelog
   - Remove badges from README.md prior to converting to HTML
   
   Signed-off-by: Sergei Petrosian <spetrosi@redhat.com>
-
 
 [1.2.1] - 2023-08-21
 --------------------
