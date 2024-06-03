@@ -70,7 +70,7 @@
     src: "{{ __ad_integration_realmd_config }}.j2"
     dest: /etc/{{ __ad_integration_realmd_config }}
     backup: true
-    mode: 0400
+    mode: "0400"
   notify: Handler for ad_integration to restart services
 
 - name: Flush handlers
