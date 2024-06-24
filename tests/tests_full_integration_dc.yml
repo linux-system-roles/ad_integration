@@ -49,15 +49,14 @@
 
     - name: Add a test user
       microsoft.ad.user:  # noqa syntax-check[unknown-module]
-        name: "{{ item.name }}"
-        firstname: "{{ item.first_name }}"
-        surname: "{{ item.surname }}"
+        identity: test_usr1
+        firstname: Josef
+        surname: Novak
         password: Secret123
         state: present
         groups:
-          - test_grp1
-      loop:
-        - {name: 'test_usr1', first_name: 'Josef', surname: 'Novak'}
+          set:
+            - test_grp1
       register: user_creation
     - name: Debug user_creation
       debug:
