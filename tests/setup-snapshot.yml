@@ -10,5 +10,5 @@
 
     - name: Install test packages
       package:
-        name: "{{ __template_packages }}"
+        name: "{{ __ad_integration_packages }}"
         state: present
