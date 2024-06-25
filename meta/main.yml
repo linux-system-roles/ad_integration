@@ -7,7 +7,6 @@ galaxy_info:
   license: MIT
   min_ansible_version: "2.9"
   platforms:
-    # Replace the below with your platform list:
     - name: Fedora
       versions:
         - all
@@ -16,15 +15,17 @@ galaxy_info:
         - "7"
         - "8"
         - "9"
-
   galaxy_tags:
-    - ad
     - activedirectory
-    - realmd
-    - sssd
-    - redhat
-    - fedora
+    - ad
     - centos
+    - el7
+    - el8
+    - el9
+    - el10
+    - fedora
+    - realmd
+    - redhat
     - rhel
-
+    - sssd
 dependencies: []
