@@ -1,6 +1,18 @@
 Changelog
 =========
 
+[1.4.6] - 2024-07-02
+--------------------
+
+### Bug Fixes
+
+- fix: add support for EL10 (#102)
+
+### Other Changes
+
+- tests: Fix invocation of the `microsoft.ad.user` module (#100)
+- ci: ansible-lint action now requires absolute directory (#101)
+
 [1.4.5] - 2024-06-11
 --------------------
 
