@@ -47,6 +47,17 @@
     - (ad_integration_dns_server is none or
        ad_integration_dns_connection_name is none or
        ad_integration_dns_connection_type is none)
+# Validate deny and permit variables
+- name: Ensure deny and permit varables are not set together 
+  fail:
+    msg: >-
+      ad_integration_permit_groups, ad_integration_permit_users cannot be defined
+      alongside ad_integration_deny
+  when:
+    - (ad_integration_permit_users is not none or
+       ad_integration_permit_groups is not none and
+       ad_integration_deny is true)
+
 
 - name: Set platform/version specific variables
   include_tasks: tasks/set_vars.yml
