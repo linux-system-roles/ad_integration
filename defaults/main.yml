@@ -147,3 +147,18 @@ ad_integration_sssd_custom_settings: []
 # `sssd-enable-logins` to avoid overwriting previous PAM/nsswitch changes, until
 # https://issues.redhat.com/browse/RHEL-5101 is addressed.
 ad_integration_preserve_authselect_profile: false
+
+# Optional. A list of AD users that are permitted to log into the system
+# Requires a space seperated list
+# ad_integration_permit_groups: Admin developer sales@domain.com
+ad_integration_permit_groups: null
+
+# Optional. A list of AD groups that are permitted to log into the system
+# Requires a space seperated list
+# ad_integration_permit_users: foo@domain.com bar@domain.com DOMAIN.COM\baz
+ad_integration_permit_users: null
+
+# Optional. if true, will run `realm deny --all`
+# realm: Specifying deny without --all is deprecated. Use realm permit --withdraw
+# Only applicable if `ad_integration_permit_groups` and `ad_intergration_permit_users` are false
+ad_integration_deny: false
