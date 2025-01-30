@@ -23,9 +23,6 @@ exclude_paths:
 mock_modules:
   - win_domain_group
   - win_domain_user
-  - community.general.ini_file
-  - ansible.windows.win_command
-  - ansible.windows.win_shell
 mock_roles:
   - linux-system-roles.ad_integration
 supported_ansible_also:
