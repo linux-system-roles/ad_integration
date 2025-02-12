@@ -117,7 +117,7 @@ ad_dyndns_force_tcp: false
 
 # Optional. GSS-TSIG authentication is used for secure updates
 # with the DNS server when updating A and AAAA records.
-# Valid values are "GSS-TSIG" or "none" allowing unsecure updates.
+# Valid values are "GSS-TSIG" or "none" allowing insecure updates.
 # The default value in sssd is 'GSS-TSIG'.
 # Only applicable if `ad_dyndns_update` is true
 ad_dyndns_auth: null
