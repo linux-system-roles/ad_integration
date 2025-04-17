@@ -147,3 +147,6 @@ ad_integration_sssd_custom_settings: []
 # `sssd-enable-logins` to avoid overwriting previous PAM/nsswitch changes, until
 # https://issues.redhat.com/browse/RHEL-5101 is addressed.
 ad_integration_preserve_authselect_profile: false
+
+# Set to false to skip the package installation task.
+ad_integration_required_package_check: true
