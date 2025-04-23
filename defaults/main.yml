@@ -149,4 +149,4 @@ ad_integration_sssd_custom_settings: []
 ad_integration_preserve_authselect_profile: false
 
 # Set to false to skip the package installation task.
-ad_integration_required_package_check: true
+ad_integration_manage_packages: true
