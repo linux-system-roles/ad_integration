@@ -235,6 +235,12 @@ remove the `authselect` command from `sssd-enable-logins` to avoid overwriting
 previous PAM/nsswitch changes, until
 [RHEL-5101](https://issues.redhat.com/browse/RHEL-5101) is addressed.
 
+#### ad_integration_manage_packages
+
+By default the role will automatically install any OS‐level packages needed for Active Directory integration. If `false` the role will assume that all prerequisites are already in place and package installation will be skipped. 
+
+Default: true
+
 ## Example Playbook
 
 The following is an example playbook to setup direct Active Directory integration with AD domain `domain.example.com`, the join will be performed with user Administrator using the vault stored password. Prior to the join, the crypto policy for AD SUPPORT with RC4 encryption allowed will be set.
