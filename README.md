@@ -237,7 +237,7 @@ previous PAM/nsswitch changes, until
 
 #### ad_integration_manage_packages
 
-By default the role will automatically install any OS‐level packages needed for Active Directory integration. If `false` the role will assume that all prerequisites are already in place and package installation will be skipped. 
+By default, the role installs OS‐level packages needed for Active Directory integration. If `false`, the role assumes that all prerequisites are already in place and skips package installation.
 
 Default: true
 
