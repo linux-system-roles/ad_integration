@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Ensure ad_integration_manage_packages works
+  hosts: all,!ad
+  vars:
+    ad_integration_realm: sample-realm.com
+    __test_packages:
+      - realmd
+      - PackageKit
+  tasks:
+    - name: Determine if system is ostree and set flag
+      when: not __ad_integration_is_ostree is defined
+      block:
+        - name: Check if system is ostree
+          stat:
+            path: /run/ostree-booted
+          register: __ostree_booted_stat
+
+        - name: Set flag to indicate system is ostree
+          set_fact:
+            __ad_integration_is_ostree: "{{ __ostree_booted_stat.stat.exists }}"
+
+    - name: Only test on package mode systems
+      when: not __ad_integration_is_ostree
+      block:
+        - name: Ensure role packages are present
+          package:
+            name: "{{ __test_packages }}"
+            state: present
+
+        # role will fail if ad_integration_manage_packages is not handled correctly
+        - name: Run the role with ad_integration_manage_packages
+          include_role:
+            name: linux-system-roles.ad_integration
+          vars:
+            ad_integration_manage_packages: false
+
+        - name: Check role did not install packages
+          assert:
+            that: not __ad_integration_package_register is changed
