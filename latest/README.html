@@ -210,6 +210,8 @@ id="toc-ad_integration_sssd_settings">ad_integration_sssd_settings</a></li>
 id="toc-ad_integration_sssd_custom_settings">ad_integration_sssd_custom_settings</a></li>
 <li><a href="#ad_integration_preserve_authselect_profile"
 id="toc-ad_integration_preserve_authselect_profile">ad_integration_preserve_authselect_profile</a></li>
+<li><a href="#ad_integration_manage_packages"
+id="toc-ad_integration_manage_packages">ad_integration_manage_packages</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#example-playbook" id="toc-example-playbook">Example
@@ -491,6 +493,12 @@ id="ad_integration_preserve_authselect_profile">ad_integration_preserve_authsele
 avoid overwriting previous PAM/nsswitch changes, until <a
 href="https://issues.redhat.com/browse/RHEL-5101">RHEL-5101</a> is
 addressed.</p>
+<h3
+id="ad_integration_manage_packages">ad_integration_manage_packages</h3>
+<p>By default, the role installs OS‐level packages needed for Active
+Directory integration. If <code>false</code>, the role assumes that all
+prerequisites are already in place and skips package installation.</p>
+<p>Default: true</p>
 <h1 id="example-playbook">Example Playbook</h1>
 <p>The following is an example playbook to setup direct Active Directory
 integration with AD domain <code>domain.example.com</code>, the join
