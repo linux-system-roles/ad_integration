@@ -58,6 +58,7 @@
     use: "{{ (__ad_integration_is_ostree | d(false)) |
       ternary('ansible.posix.rhel_rpm_ostree', omit) }}"
   when: ad_integration_manage_packages | bool
+  register: __ad_integration_package_register
 
 - name: Ensure required services are enabled and started
   service:
