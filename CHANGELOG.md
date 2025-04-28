@@ -1,6 +1,26 @@
 Changelog
 =========
 
+[1.5.0] - 2025-04-28
+--------------------
+
+### New Features
+
+- feat: Introduced option to skip package installation (#131)
+
+### Other Changes
+
+- ci: ansible-plugin-scan is disabled for now (#121)
+- ci: bump ansible-lint to v25; provide collection requirements for ansible-lint (#124)
+- ci: Check spelling with codespell (#126)
+- ci: Add test plan that runs CI tests and customize it for each role (#127)
+- ci: In test plans, prefix all relate variables with SR_ (#128)
+- ci: Fix bug with ARTIFACTS_URL after prefixing with SR_ (#129)
+- ci: several changes related to new qemu test, ansible-lint, python versions, ubuntu versions (#130)
+- ci: use tox-lsr 3.6.0; improve qemu test logging (#132)
+- ci: skip storage scsi, nvme tests in github qemu ci (#133)
+- test: test for ad_integration_manage_packages (#134)
+
 [1.4.8] - 2025-01-09
 --------------------
 
