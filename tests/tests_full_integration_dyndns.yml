@@ -62,6 +62,7 @@
 
 - name: Ensure that the role configures dynamic dns
   hosts: client
+  gather_facts: true
   tasks:
     - name: Run the integration
       when: "'ad' in groups and groups['ad']"
@@ -69,14 +70,14 @@
         - name: Debug dyndns settings
           debug:
             msg: >-
-              Interface {{ _ad_dyndns_iface | default('eth0') }} and server
+              Interface {{ _ad_dyndns_iface | default(ansible_default_ipv4.interface) }} and server
               : {{ hostvars[groups['ad'][0]].ansible_host }}
         - name: Run the system role with proper config
           include_role:
             name: linux-system-roles.ad_integration
           vars:
             ad_dyndns_server: "{{ hostvars[groups['ad'][0]].ansible_host }}"
-            ad_dyndns_iface: "{{ _ad_dyndns_iface | default('eth0') }}"
+            ad_dyndns_iface: "{{ _ad_dyndns_iface | default(ansible_default_ipv4.interface) }}"
             ad_dyndns_auth: "none"
             ad_dyndns_update: true
             ad_dyndns_refresh_interval: 60
