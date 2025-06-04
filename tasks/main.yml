@@ -217,7 +217,7 @@
   community.general.ini_file:
     path: /etc/sssd/sssd.conf
     state: present
-    section: "domain/{{ ad_integration_realm | lower }}"
+    section: "domain/{{ ad_integration_realm }}"
     option: "{{ item.key }}"
     value: "{{ item.value }}"
     create: true
@@ -259,7 +259,7 @@
   community.general.ini_file:
     path: /etc/sssd/sssd.conf
     state: "{{ item.state | default('present') }}"
-    section: "domain/{{ ad_integration_realm | lower }}"
+    section: "domain/{{ ad_integration_realm }}"
     option: "{{ item.key }}"
     value: "{{ item.value }}"
     create: true
@@ -276,7 +276,7 @@
   community.general.ini_file:
     path: /etc/sssd/sssd.conf
     state: absent
-    section: "domain/{{ ad_integration_realm | lower }}"
+    section: "domain/{{ ad_integration_realm }}"
     option: "{{ item.key }}"
     owner: root
     group: root
