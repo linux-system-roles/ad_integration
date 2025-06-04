@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Ensure that the role migrates sssd domain settings depending on case
+  hosts: all,!ad
+  gather_facts: true
+  vars:
+    ad_integration_realm: MIGRATE.REALM.COM
+    __ad_integration_test_sssd_config_only: true
+    __ad_integration_sssd_custom_settings:
+      - key: setting_1_1
+        value: value_1_1
+      - key: setting_1_2
+        value: value_1_2
+    __ad_integration_sssd_custom_settings2:
+      - key: setting_2_1
+        value: value_2_1
+      - key: setting_2_2
+        value: value_2_2
+    __ad_integration_sssd_custom_settings3:
+      - key: setting_3_1
+        value: value_3_1
+      - key: setting_3_2
+        value: value_3_2
+    __sssd_conf_content: |
+      [domain/{{ ad_integration_realm | lower }}]
+      {% for item in __ad_integration_sssd_custom_settings %}
+      # comment {{ loop.index }}
+      {{ item["key"] }} = {{ item["value"] }}
+      {% endfor %}
+      [domain/{{ ad_integration_realm }}]
+      {% for item in __ad_integration_sssd_custom_settings2 %}
+      # comment {{ loop.index }}
+      {{ item["key"] }} = {{ item["value"] }}
+      {% endfor %}
+  tasks:
+    - name: Run test
+      block:
+        - name: Create a temp file for sssd.conf
+          tempfile:
+            prefix: lsr_
+            suffix: _ad_int.conf
+          register: __sssd_conf_tmp
+
+        - name: Set sssd.conf variable for remainder of test
+          set_fact:
+            __ad_integration_sssd_conf: "{{ __sssd_conf_tmp.path }}"
+
+        - name: Create a fake sssd.conf
+          copy:
+            dest: "{{ __ad_integration_sssd_conf }}"
+            content: "{{ __sssd_conf_content }}"
+            mode: "0600"
+
+        - name: Setup fake realm
+          include_tasks: tasks/manage_fake_realm.yml
+          vars:
+            __manage_fake_realm: setup
+            __ad_integration_realm_list: "domain-name: {{ ad_integration_realm }}"
+
+        - name: Test - Run the system role merging duplicate sssd domain sections
+          include_role:
+            name: linux-system-roles.ad_integration
+          vars:
+            ad_integration_sssd_custom_settings: "{{ __ad_integration_sssd_custom_settings +
+              __ad_integration_sssd_custom_settings2 + __ad_integration_sssd_custom_settings3 }}"
+            ad_integration_sssd_merge_duplicate_sections: true
+
+        - name: Check custom SSSD settings - this section should be removed
+          community.general.ini_file:
+            path: "{{ __ad_integration_sssd_conf }}"
+            state: absent
+            section: domain/{{ ad_integration_realm | lower }}
+            create: true
+            owner: root
+            group: root
+            mode: u=rw,g=,o=
+          register: __result
+          failed_when: __result is changed
+
+        - name: Check custom SSSD settings again - for merged options
+          community.general.ini_file:
+            path: "{{ __ad_integration_sssd_conf }}"
+            state: "{{ item.state | default('present') }}"
+            section: domain/{{ ad_integration_realm }}
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+            create: true
+            owner: root
+            group: root
+            mode: u=rw,g=,o=
+          loop: "{{ __ad_integration_sssd_custom_settings +
+            __ad_integration_sssd_custom_settings2 + __ad_integration_sssd_custom_settings3 }}"
+          register: __result
+          failed_when: __result is changed
+
+      always:
+        - name: Cleanup fake realm
+          include_tasks: tasks/manage_fake_realm.yml
+          vars:
+            __manage_fake_realm: cleanup

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+if [ -n "${LSR_DEBUG:-}" ]; then
+  set -x
+fi
+
+# if it's already fqcn, don't replace it
+fqcn="$LSR_NAMESPACE.$LSR_COLLECTION.ad_integration_from_ini"
+find tasks templates -type f \
+  -exec sed -i "s/\([ 	]\)ad_integration_from_ini\>/\1$fqcn/g" \
+  {} \;

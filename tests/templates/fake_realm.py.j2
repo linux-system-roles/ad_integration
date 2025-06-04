@@ -1,0 +1,59 @@
+#!{{ ansible_python.executable }}
+import argparse
+import os
+import sys
+
+if sys.version_info.major == 3:
+    from configparser import RawConfigParser as ConfigParser
+else:
+    from ConfigParser import RawConfigParser as ConfigParser
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", action="store_true")
+    subparsers = parser.add_subparsers(dest="subcmd_name")
+    parser_list = subparsers.add_parser("list")
+    parser_leave = subparsers.add_parser("leave")
+    parser_join = subparsers.add_parser("join")
+    parser_join.add_argument("-U", "--user")
+    parser_join.add_argument("--membership-software")
+    parser_join.add_argument("realm")
+    return parser.parse_args()
+
+sssd_conf = "{{ __ad_integration_sssd_conf }}"
+args = parse_args()
+
+realm = getattr(args, "realm", "{{ ad_integration_realm }}")
+section = "domain/" + realm
+section_lower = section.lower()
+if "{{ __ad_integration_realm_to_lower | d('false') }}".lower() == "true":
+    section_to_add = section_lower
+else:
+    section_to_add = section
+
+conf = ConfigParser()
+conf.read(sssd_conf)
+
+if args.subcmd_name == "list":
+    print("{{ __ad_integration_realm_list | d('') }}")
+elif args.subcmd_name == "leave":
+    # When leaving, if there are duplicate sections, we don't
+    # know which one will be removed - just remove the first
+    for existing_section in conf.sections():
+        if section_lower == existing_section.lower():
+            conf.remove_section(existing_section)
+            with open(sssd_conf, "w") as fp:
+                conf.write(fp)
+            break
+elif args.subcmd_name == "join":
+    if not conf.has_section(section_to_add):
+        conf.add_section(section_to_add)
+        conf.set(section_to_add, "ad_domain", "{{ ad_integration_realm }}")
+        conf.set(section_to_add, "id_provider", "ad")
+        with open(sssd_conf, "w") as fp:
+            conf.write(fp)
+    else:
+        print("realm: Already joined to this domain")
+
+sys.exit(0)

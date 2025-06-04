@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Setup
+  when: __manage_fake_realm == "setup"
+  block:
+    - name: Get role variables
+      include_role:
+        name: linux-system-roles.ad_integration
+        tasks_from: set_vars.yml
+        public: true
+
+    - name: Create a temp file for fake realm cmd
+      tempfile:
+        prefix: lsr_
+        suffix: _ad_int_realm.py
+      register: __fake_realm_tmp
+
+    - name: Set realm cmd variable for remainder of test
+      set_fact:
+        __ad_integration_realm_cmd: "{{ __fake_realm_tmp.path }}"
+
+    - name: Create fake realm cmd
+      template:
+        src: templates/fake_realm.py.j2
+        dest: "{{ __fake_realm_tmp.path }}"
+        mode: "0755"
+
+    - name: Check if /etc/sssd exists
+      stat:
+        path: /etc/sssd
+      register: __sssd_dir_stat
+
+    - name: Install sssd-common for /etc/sssd
+      package:
+        name: sssd-common
+        state: present
+        use: "{{ (__ad_integration_is_ostree | d(false)) |
+                 ternary('ansible.posix.rhel_rpm_ostree', omit) }}"
+      when: not __sssd_dir_stat.stat.exists
+      register: __installed_sssd_package
+
+- name: Cleanup
+  when: __manage_fake_realm == "cleanup"
+  block:
+    - name: Remove realm cmd
+      file:
+        path: "{{ __ad_integration_realm_cmd }}"
+        state: absent
+
+    - name: Remove sssd-common
+      package:
+        name: sssd-common
+        state: absent
+      when:
+        - not __ad_integration_is_ostree
+        - __installed_sssd_package is changed

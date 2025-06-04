@@ -75,6 +75,7 @@
         - name: Run the system role with proper config
           include_role:
             name: linux-system-roles.ad_integration
+            public: true
           vars:
             ad_dyndns_server: "{{ hostvars[groups['ad'][0]].ansible_host }}"
             ad_dyndns_iface: "{{ _ad_dyndns_iface | default(ansible_default_ipv4.interface) }}"
@@ -103,7 +104,7 @@
           changed_when: false
           failed_when: false
         - name: Grab sssd.conf contents
-          command: cat /etc/sssd/sssd.conf
+          command: cat {{ __ad_integration_sssd_conf | quote }}
           changed_when: false
         - name: Get IP for host's FQDN
           command: >-
