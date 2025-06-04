@@ -18,9 +18,9 @@ Administrator user as the security footprint of this user is too large.
 See [Delegated Permissions](https://www.mankier.com/8/adcli#Delegated_Permissions)
 for the explicit permissions a user must have.
 
-Time must be in sync with Active Directory servers. The ad_integration role will use the timesync system role for this if the user specifies `ad_integration_manage_timesync` to true and provides a value for `ad_integration_timesync_source` to use as a timesource.
+Time must be in sync with Active Directory servers. The ad_integration role will use the timesync system role for this if the user specifies [ad_integration_manage_timesync](#ad_integration_manage_timesync) to true and provides a value for [ad_integration_timesync_source](#ad_integration_timesync_source) to use as a timesource.
 
-RHEL8 (and newer) and Fedora no longer support RC4 encryption out of the box, it is recommended to enable AES in Active Directory, if not possible then the AD-SUPPORT crypto policy must be enabled.  The integration role will use the crypto_policies system role for this if the user sets the `ad_integration_manage_crypto_policies` and `ad_integration_allow_rc4_crypto` parameters to true.
+RHEL8 (and newer) and Fedora no longer support RC4 encryption out of the box, it is recommended to enable AES in Active Directory, if not possible then the AD-SUPPORT crypto policy must be enabled.  The integration role will use the crypto_policies system role for this if the user sets the [ad_integration_manage_crypto_policies](ad_integration_manage_crypto_policies) and [ad_integration_allow_rc4_crypto](#ad_integration_allow_rc4_crypto) parameters to true.
 
 The Linux system must be able to resolve default AD DNS SRV records.
 
@@ -54,6 +54,22 @@ ansible-galaxy collection install -vv -r meta/collection-requirements.yml
 #### ad_integration_realm
 
 Active Directory realm, or domain name to join
+
+*NOTE* If using this role to manage realm/domain specific settings in SSSD using
+([ad_dyndns_update](#ad_dyndns_update) or
+[ad_integration_sssd_custom_settings](#ad_integration_sssd_custom_settings),
+older versions of the role would make the realm name lower case in the domain
+section name.  For example, if you had specified `ad_integration_realm:
+EXAMPLE.COM`, then the sssd.conf section would have been `[domain/example.com]`.
+The role now will instead use a case-insensitive match to look for an existing
+section in sssd.conf, which should already exist.
+
+The result of this is that you may have multiple sections for the domain in your
+sssd.conf. If you want to consolidate these sections into one, use
+[`ad_integration_sssd_merge_duplicate_sections:
+true`](#ad_integration_sssd_merge_duplicate_sections).  See below for more
+information about
+[ad_integration_sssd_merge_duplicate_sections(#ad_integration_sssd_merge_duplicate_sections).
 
 #### ad_integration_password
 
@@ -105,13 +121,13 @@ Default: Default AD computer container
 
 #### ad_integration_manage_timesync
 
-If true, the ad_integration role will use fedora.linux_system_roles.timesync. Requires providing a value for `ad_integration_timesync_source` to use as a time source.
+If true, the ad_integration role will use fedora.linux_system_roles.timesync. Requires providing a value for [ad_integration_timesync_source](#ad_integration_timesync_source) to use as a time source.
 
 Default: false
 
 #### ad_integration_timesync_source
 
-Hostname or IP address of time source to synchronize the system clock with. Providing this variable automatically sets `ad_integration_manage_timesync` to true.
+Hostname or IP address of time source to synchronize the system clock with. Providing this variable automatically sets [ad_integration_manage_timesync](#ad_integration_manage_timesync) to true.
 
 #### ad_integration_manage_crypto_policies
 
@@ -121,7 +137,7 @@ Default: false
 
 #### ad_integration_allow_rc4_crypto
 
-If true, the ad_integration role will set the crypto policy allowing RC4 encryption. Providing this variable automatically sets ad_integration_manage_crypto_policies to true
+If true, the ad_integration role will set the crypto policy allowing RC4 encryption. Providing this variable automatically sets [ad_integration_manage_crypto_policies](#ad_integration_manage_crypto_policies) to true
 
 Default: false
 
@@ -135,25 +151,29 @@ If true, the ad_integration role will use fedora.linux_system_roles.network to a
 
 #### ad_integration_dns_server
 
-IP address of DNS server to add to existing networking configuration. Only applicable if `ad_integration_manage_dns` is true
+IP address of DNS server to add to existing networking configuration. Only applicable if [ad_integration_manage_dns](#ad_integration_manage_dns) is true
 
 #### ad_integration_dns_connection_name
 
-The name option identifies the connection profile to be configured by the network role. It is not the name of the networking interface for which the profile applies. Only applicable if `ad_integration_manage_dns` is true
+The name option identifies the connection profile to be configured by the network role. It is not the name of the networking interface for which the profile applies. Only applicable if [ad_integration_manage_dns](#ad_integration_manage_dns) is true
 
 #### ad_integration_dns_connection_type
 
-Network connection type such as ethernet, bridge, bond...etc, the network role contains a list of possible values. Only applicable if `ad_integration_manage_dns` is true
+Network connection type such as ethernet, bridge, bond...etc, the network role contains a list of possible values. Only applicable if [ad_integration_manage_dns](#ad_integration_manage_dns) is true
 
 #### ad_dyndns_update
 
 If true, SSSD is configured to automatically update the AD DNS server with the IP address of the client.
 
+*NOTE*: See the [ad_integration_realm](#ad_integration_realm), and
+[ad_integration_sssd_merge_duplicate_sections](#ad_integration_sssd_merge_duplicate_sections)
+for information about how the role writes these settings to the sssd.conf file.
+
 Default: false
 
 #### ad_dyndns_ttl
 
-Optional. The TTL, in seconds, to apply to the client's DNS record when updating it. Only applicable if `ad_dyndns_update` is true
+Optional. The TTL, in seconds, to apply to the client's DNS record when updating it. Only applicable if [ad_dyndns_update](#ad_dyndns_update) is true
 
 **Note:** This will override the TTL set by an administrator on the server.
 
@@ -161,13 +181,13 @@ Default: 3600
 
 #### ad_dyndns_iface
 
-Optional. Interface or a list of interfaces whose IP addresses should be used for dynamic DNS updates. Special value "*" implies all IPs from all interfaces should be used. Only applicable if `ad_dyndns_update` is true
+Optional. Interface or a list of interfaces whose IP addresses should be used for dynamic DNS updates. Special value "*" implies all IPs from all interfaces should be used. Only applicable if [ad_dyndns_update](#ad_dyndns_update) is true
 
 Default: Use the IP addresses of the interface which is used for AD LDAP connection
 
 #### ad_dyndns_refresh_interval
 
-Optional. How often should, in seconds, periodic DNS updates be performed in addition to when the back end goes online. Only applicable if `ad_dyndns_update` is true
+Optional. How often should, in seconds, periodic DNS updates be performed in addition to when the back end goes online. Only applicable if [ad_dyndns_update](#ad_dyndns_update) is true
 
 **Note:** lowest possible value is 60 seconds. If value less than 60 is specified sssd will assume lowest value only.
 
@@ -175,34 +195,34 @@ Default: 86400
 
 #### ad_dyndns_update_ptr
 
-Optional. If true, the PTR record should also be explicitly updated. Only applicable if `ad_dyndns_update` is true
+Optional. If true, the PTR record should also be explicitly updated. Only applicable if [ad_dyndns_update](#ad_dyndns_update) is true
 
 Default: true
 
 #### ad_dyndns_force_tcp
 
-Optional. If true, the nsupdate utility should default to using TCP for communicating with the DNS server. Only applicable if `ad_dyndns_update` is true
+Optional. If true, the nsupdate utility should default to using TCP for communicating with the DNS server. Only applicable if [ad_dyndns_update](#ad_dyndns_update) is true
 
 Default: false
 
 #### ad_dyndns_auth
 
-Optional. If true, GSS-TSIG authentication will be used for secure updates with the DNS server when updating A and AAAA records. Only applicable if `ad_dyndns_update` is true
+Optional. If true, GSS-TSIG authentication will be used for secure updates with the DNS server when updating A and AAAA records. Only applicable if [ad_dyndns_update](#ad_dyndns_update) is true
 
 Default: true
 
 #### ad_dyndns_server
 
-Optional. DNS server to use when performing a DNS update when autodetection settings fail. Only applicable if `ad_dyndns_update` is true
+Optional. DNS server to use when performing a DNS update when autodetection settings fail. Only applicable if [ad_dyndns_update](#ad_dyndns_update) is true
 
 Default: None (let nsupdate choose the server)
 
 #### ad_integration_join_parameters
 
 Additional parameters (as a string) supplied directly to the realm join command.
-Useful if some specific configuration like --user-principal=host/name@REALM or --use-ldaps is needed.
+Useful if some specific configuration like `--user-principal=host/name@REALM` or `--use-ldaps` is needed.
 See man realm for details.
-Example: ad_integration_join_parameters: "--user-principal host/client007@EXAMPLE.COM"
+Example: `ad_integration_join_parameters: "--user-principal host/client007@EXAMPLE.COM"`
 
 #### ad_integration_sssd_settings
 
@@ -228,6 +248,10 @@ ad_integration_sssd_custom_settings:
     value: "configuration_value"
 ```
 
+*NOTE*: See the [ad_integration_realm](#ad_integration_realm) and
+[ad_integration_sssd_merge_duplicate_sections](#ad_integration_sssd_merge_duplicate_sections) for information about how the
+role writes these settings to the sssd.conf file.
+
 #### ad_integration_preserve_authselect_profile
 
 This is a boolean, default is `false`.  If `true`, configure realmd.conf to
@@ -240,6 +264,30 @@ previous PAM/nsswitch changes, until
 By default, the role installs OS‐level packages needed for Active Directory integration. If `false`, the role assumes that all prerequisites are already in place and skips package installation.
 
 Default: true
+
+#### ad_integration_sssd_merge_duplicate_sections
+
+*NOTE WELL*: This will do a [force rejoin](#ad_integration_force_rejoin) as this
+is the only way to clean up sssd.conf and ensure all of the settings are applied
+correctly after merging.
+
+This is a boolean, default is `false`.  Because the domain/realm section in
+sssd.conf is case insensitive, and you have previously used the role to manage
+domain/realm settings in sssd.conf, there may be multiple sections matching the
+domain/realm.  If you want to consolidate these sections into one, use
+`ad_integration_sssd_merge_duplicate_sections: true`.  For example, if you have
+a sssd.conf with both `[domain/example.com]` and `[domain/EXAMPLE.COM]`, and you
+want to use only the latter, then use:
+
+```yaml
+ad_integration_realm: EXAMPLE.COM
+ad_integration_sssd_merge_duplicate_sections: true
+ad_integration_sssd_custom_settings: somesettings
+```
+
+All of the settings from `[domain/example.com]` will be moved to
+`[domain/EXAMPLE.COM]`, and the section `[domain/example.com]` will be removed
+from sssd.conf.
 
 ## Example Playbook
 

@@ -1,0 +1,1 @@
+tests/ad_integration/templates/fake_realm.py.j2 shebang!skip

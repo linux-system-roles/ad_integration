@@ -126,30 +126,84 @@
     - ansible_distribution in ['CentOS', 'RedHat']
     - ansible_distribution_version is version('9', '>=')
 
+- name: Grab existing domain settings from sssd.conf if we want to merge
+  when: ad_integration_sssd_merge_duplicate_sections | bool
+  vars:
+    __ad_sssd_conf: "{{ __ad_sssd_conf_content.content | b64decode | ad_integration_from_ini
+      if __ad_sssd_conf_content.content is defined else {} }}"
+    __ad_sssd_section: domain/{{ ad_integration_realm }}
+  block:
+    - name: See if sssd.conf exists
+      stat:
+        path: "{{ __ad_integration_sssd_conf }}"
+      register: __ad_sssd_conf_stat
+
+    - name: Grab sssd.conf if it exists
+      slurp:
+        path: "{{ __ad_integration_sssd_conf }}"
+      register: __ad_sssd_conf_content
+      when: __ad_sssd_conf_stat.stat.exists
+      no_log: true
+
+    - name: Set variables we will need for merging - 1
+      set_fact:
+        __ad_integration_matching_sections_before: "{{ __ad_sssd_conf | dict2items | selectattr('key', 'match', '(?i)' ~ __ad_sssd_section ~ '$') |
+          list | items2dict }}"
+      no_log: true
+
+    - name: Set variables we will need for merging - 2
+      set_fact:
+        __ad_integration_has_duplicates: "{{ __ad_integration_matching_sections_before | length > 1 }}"
+      no_log: true
+
 ## Handle rejoin, if applicable
 - name: Check if we are already joined to a domain
-  command: realm -v list
+  command: "{{ __ad_integration_realm_cmd | quote }} -v list"
   register: __ad_integration_realm_list
   changed_when: false
-  when: ad_integration_force_rejoin | bool
+  when: ad_integration_force_rejoin | bool or __ad_integration_has_duplicates | d(false)
 
+# NOTE: This will remove the [domain/realm] section from sssd.conf - if there
+# are multiple such sections, it is unknown which one will be removed
 - name: Leave existing joined domain
-  command: realm -v leave
+  command: "{{ __ad_integration_realm_cmd | quote }} -v leave"
   when:
-    - ad_integration_force_rejoin | bool
+    - ad_integration_force_rejoin | bool or __ad_integration_has_duplicates | d(false)
     - '"domain-name" in __ad_integration_realm_list.stdout'
     - not ansible_check_mode
   changed_when: true
 
+- name: Remove any duplicate domain sections after realm leave
+  when: __ad_integration_has_duplicates | d(false)
+  vars:
+    __ad_matching_section_names: "{{ __ad_integration_matching_sections_before | d({}) | dict2items | map(attribute='key') | list }}"
+  block:
+    - name: See if sssd.conf exists after realm leave
+      stat:
+        path: "{{ __ad_integration_sssd_conf }}"
+      register: __ad_sssd_conf_stat
+
+    - name: Remove duplicate sections
+      community.general.ini_file:
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: absent
+        section: "{{ item }}"
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ __ad_matching_section_names }}"
+      when: __ad_sssd_conf_stat.stat.exists
+      notify: Handler for ad_integration to restart services - sssd
+
 - name: Build Command - Join to a specific Domain Controller
   set_fact:
     __ad_integration_join_command: >-
-      realm join -U {{ ad_integration_user | quote }} --membership-software
+      {{ __ad_integration_realm_cmd | quote }} join -U {{ ad_integration_user | quote }} --membership-software
       {{ ad_integration_membership_software | quote }}
       {{ ad_integration_join_parameters }}
       {{ ad_integration_join_to_dc | quote }}
     __ad_integration_debug_command: >-
-      realm join -U {{ ad_integration_user | quote }} --membership-software
+      {{ __ad_integration_realm_cmd | quote }} join -U {{ ad_integration_user | quote }} --membership-software
       {{ ad_integration_membership_software | quote }}
       {{ ad_integration_join_to_dc | quote }}
   no_log: true
@@ -158,12 +212,12 @@
 - name: Build Join Command - Perform discovery-based realm join operation
   set_fact:
     __ad_integration_join_command: >-
-      realm join -U {{ ad_integration_user | quote }} --membership-software
+      {{ __ad_integration_realm_cmd | quote }} join -U {{ ad_integration_user | quote }} --membership-software
       {{ ad_integration_membership_software | quote }}
       {{ ad_integration_join_parameters }}
       {{ ad_integration_realm | quote }}
     __ad_integration_debug_command: >-
-      realm join -U {{ ad_integration_user | quote }} --membership-software
+      {{ __ad_integration_realm_cmd | quote }} join -U {{ ad_integration_user | quote }} --membership-software
       {{ ad_integration_membership_software | quote }}
       {{ ad_integration_realm | quote }}
   no_log: true
@@ -199,94 +253,140 @@
   changed_when: not __realm_join_output.stderr is
     search("Already joined to this domain")
 
-- name: Configure SSSD settings
-  community.general.ini_file:
-    path: /etc/sssd/sssd.conf
-    state: "{{ item.state | default('present') }}"
-    section: "sssd"
-    option: "{{ item.key }}"
-    value: "{{ item.value }}"
-    create: true
-    owner: root
-    group: root
-    mode: u=rw,g=,o=
-  loop: "{{ ad_integration_sssd_settings }}"
-  notify: Handler for ad_integration to restart services - sssd
+- name: Handle any SSSD settings
+  when: ad_integration_sssd_settings | length > 0 or
+    ad_dyndns_update or ad_integration_sssd_custom_settings | length > 0 or
+    __ad_integration_matching_sections_before | d({}) | length > 0
+  vars:
+    __ad_sssd_conf: "{{ __ad_sssd_conf_content.content | b64decode | ad_integration_from_ini
+      if __ad_sssd_conf_content.content is defined else {} }}"
+    __ad_sssd_section: domain/{{ ad_integration_realm }}
+    __ad_matching_section_names: "{{ __ad_sssd_conf | dict2items | selectattr('key', 'match', '(?i)' ~ __ad_sssd_section ~ '$') |
+      map(attribute='key') | list }}"
+    __ad_matching_section_names_exact: "{{ __ad_sssd_conf | dict2items | selectattr('key', 'match', __ad_sssd_section ~ '$') |
+      map(attribute='key') | list }}"
+    # if there is a unique match using a case-insensitive match, use it
+    # otherwise, if there is an exact case-sensitive match, use it
+    # otherwise, just use the first one found in the case-insensitive match
+    __ad_section_to_use: "{{ __ad_matching_section_names | first
+      if __ad_matching_section_names | length == 1
+      else __ad_matching_section_names_exact | first
+      if __ad_matching_section_names_exact | length == 1
+      else __ad_matching_section_names | first }}"
+  block:
+    - name: See if sssd.conf exists after realm join
+      stat:
+        path: "{{ __ad_integration_sssd_conf }}"
+      register: __ad_sssd_conf_stat
 
-- name: Configure dynamic DNS updates
-  community.general.ini_file:
-    path: /etc/sssd/sssd.conf
-    state: present
-    section: "domain/{{ ad_integration_realm | lower }}"
-    option: "{{ item.key }}"
-    value: "{{ item.value }}"
-    create: true
-    owner: root
-    group: root
-    mode: u=rw,g=,o=
-  loop:
-    - key: dyndns_update
-      value: "{{ ad_dyndns_update | string }}"
-    - key: dyndns_ttl
-      value: "{{ ad_dyndns_ttl | int }}"
-    - key: dyndns_iface
-      value: "{{ ad_dyndns_iface | string
-        if ad_dyndns_iface is not none else '' }}"
-    - key: dyndns_refresh_interval
-      value: "{{ ad_dyndns_refresh_interval | int }}"
-    - key: dyndns_update_ptr
-      value: "{{ ad_dyndns_update_ptr | string }}"
-    - key: dyndns_force_tcp
-      value: "{{ ad_dyndns_force_tcp | string }}"
-    - key: dyndns_auth
-      value: "{{ ad_dyndns_auth | string if ad_dyndns_auth else '' }}"
-    - key: dyndns_server
-      value: "{{ ad_dyndns_server | string
-        if ad_dyndns_server is not none else '' }}"
-    # For dynamic dns to work the machine either needs fqdn in hostname
-    # or ad_hostname needs to be defined.
-    - key: ad_hostname
-      value: "{{ ansible_hostname + '.' + ad_integration_realm | lower
-        | string if '.' not in ansible_hostname else '' }}"
+    - name: Grab sssd.conf if it exists after realm join
+      slurp:
+        path: "{{ __ad_integration_sssd_conf }}"
+      register: __ad_sssd_conf_content
+      when: __ad_sssd_conf_stat.stat.exists
 
-  when:
-    - ad_dyndns_update | bool
-    - item.value is not none
-    - item.value != ''
-  notify: Handler for ad_integration to restart services - sssd
+    - name: Consolidate options from duplicate sections
+      community.general.ini_file:
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: present
+        section: "{{ __ad_section_to_use }}"
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ (__ad_integration_matching_sections_before | d({})).values() | map('dict2items') | flatten | list }}"
+      notify: Handler for ad_integration to restart services - sssd
+      when: ad_integration_sssd_merge_duplicate_sections | bool
 
-- name: Configure custom SSSD settings
-  community.general.ini_file:
-    path: /etc/sssd/sssd.conf
-    state: "{{ item.state | default('present') }}"
-    section: "domain/{{ ad_integration_realm | lower }}"
-    option: "{{ item.key }}"
-    value: "{{ item.value }}"
-    create: true
-    owner: root
-    group: root
-    mode: u=rw,g=,o=
-  loop: "{{ ad_integration_sssd_custom_settings }}"
-  notify: Handler for ad_integration to restart services - sssd
+    - name: Configure SSSD settings
+      community.general.ini_file:
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: "{{ item.state | default('present') }}"
+        section: sssd
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ ad_integration_sssd_settings }}"
+      notify: Handler for ad_integration to restart services - sssd
 
-# If dyndns_iface and/or dyndns_server previously had a configured value but are
-# now being set to `none` or `''`, remove the options form sssd.conf so sssd
-# will determine the default values.
-- name: Cleanup dynamic DNS configuration options
-  community.general.ini_file:
-    path: /etc/sssd/sssd.conf
-    state: absent
-    section: "domain/{{ ad_integration_realm | lower }}"
-    option: "{{ item.key }}"
-    owner: root
-    group: root
-    mode: u=rw,g=,o=
-  loop:
-    - key: dyndns_iface
-      value: "{{ '' if ad_dyndns_iface is none else ad_dyndns_iface }}"
-    - key: dyndns_server
-      value: "{{ '' if ad_dyndns_server is none else ad_dyndns_server }}"
-  when:
-    - ad_dyndns_update | bool
-    - item.value is none or item.value == ''
-  notify: Handler for ad_integration to restart services - sssd
+    - name: Configure dynamic DNS updates
+      community.general.ini_file:
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: present
+        section: "{{ __ad_section_to_use }}"
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop:
+        - key: dyndns_update
+          value: "{{ ad_dyndns_update | string }}"
+        - key: dyndns_ttl
+          value: "{{ ad_dyndns_ttl | int }}"
+        - key: dyndns_iface
+          value: "{{ ad_dyndns_iface | string
+            if ad_dyndns_iface is not none else '' }}"
+        - key: dyndns_refresh_interval
+          value: "{{ ad_dyndns_refresh_interval | int }}"
+        - key: dyndns_update_ptr
+          value: "{{ ad_dyndns_update_ptr | string }}"
+        - key: dyndns_force_tcp
+          value: "{{ ad_dyndns_force_tcp | string }}"
+        - key: dyndns_auth
+          value: "{{ ad_dyndns_auth | string if ad_dyndns_auth else '' }}"
+        - key: dyndns_server
+          value: "{{ ad_dyndns_server | string
+            if ad_dyndns_server is not none else '' }}"
+        # For dynamic dns to work the machine either needs fqdn in hostname
+        # or ad_hostname needs to be defined.
+        - key: ad_hostname
+          value: "{{ ansible_hostname + '.' + ad_integration_realm | lower
+            | string if '.' not in ansible_hostname else '' }}"
+      when:
+        - ad_dyndns_update | bool
+        - item.value is not none
+        - item.value != ''
+      notify: Handler for ad_integration to restart services - sssd
+
+    - name: Configure custom SSSD settings
+      community.general.ini_file:
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: "{{ item.state | default('present') }}"
+        section: "{{ __ad_section_to_use }}"
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ ad_integration_sssd_custom_settings }}"
+      notify: Handler for ad_integration to restart services - sssd
+
+    # If dyndns_iface and/or dyndns_server previously had a configured value but are
+    # now being set to `none` or `''`, remove the options form sssd.conf so sssd
+    # will determine the default values.
+    - name: Cleanup dynamic DNS configuration options
+      community.general.ini_file:
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: absent
+        section: "{{ __ad_section_to_use }}"
+        option: "{{ item.key }}"
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop:
+        - key: dyndns_iface
+          value: "{{ '' if ad_dyndns_iface is none else ad_dyndns_iface }}"
+        - key: dyndns_server
+          value: "{{ '' if ad_dyndns_server is none else ad_dyndns_server }}"
+      when:
+        - ad_dyndns_update | bool
+        - item.value is none or item.value == ''
+      notify: Handler for ad_integration to restart services - sssd

@@ -71,7 +71,9 @@
         - name: Test run the system role
           include_role:
             name: linux-system-roles.ad_integration
+            public: true
           register: role_run
+
         - name: Debug role_run
           debug:
             var: role_run
@@ -82,7 +84,7 @@
             state: restarted
 
         - name: Test sssd config contains the realm
-          command: 'cat /etc/sssd/sssd.conf'
+          command: cat {{ __ad_integration_sssd_conf | quote }}
           register: sssd_config
           failed_when: '"{{ ad_integration_realm }}" not in sssd_config.stdout'
           changed_when: false

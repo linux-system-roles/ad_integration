@@ -27,6 +27,10 @@ __ad_integration_required_facts_subsets: "{{ ['!all', '!min'] +
 __ad_integration_sample_realm: sample-realm.com
 # Sample dc server used for system tests without available real AD
 __ad_integration_sample_dc: sample-dc.sample-realm.com
+# path to sssd.conf file
+__ad_integration_sssd_conf: /etc/sssd/sssd.conf
+# realm command
+__ad_integration_realm_cmd: realm
 
 # BEGIN - DO NOT EDIT THIS BLOCK - rh distros variables
 # Ansible distribution identifiers that the role treats like RHEL

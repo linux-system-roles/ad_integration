@@ -17,10 +17,11 @@
     - name: Test - Run the system role with bogus vars
       include_role:
         name: linux-system-roles.ad_integration
+        public: true
 
     - name: Check SSSD settings
       community.general.ini_file:
-        path: /etc/sssd/sssd.conf
+        path: "{{ __ad_integration_sssd_conf }}"
         state: "{{ item.state | default('present') }}"
         section: sssd
         option: "{{ item.key }}"
@@ -58,7 +59,7 @@
 
     - name: Check custom SSSD settings
       community.general.ini_file:
-        path: /etc/sssd/sssd.conf
+        path: "{{ __ad_integration_sssd_conf }}"
         state: "{{ item.state | default('present') }}"
         section: sssd
         option: "{{ item.key }}"
