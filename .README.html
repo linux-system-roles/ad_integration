@@ -212,6 +212,8 @@ id="toc-ad_integration_sssd_custom_settings">ad_integration_sssd_custom_settings
 id="toc-ad_integration_preserve_authselect_profile">ad_integration_preserve_authselect_profile</a></li>
 <li><a href="#ad_integration_manage_packages"
 id="toc-ad_integration_manage_packages">ad_integration_manage_packages</a></li>
+<li><a href="#ad_integration_sssd_merge_duplicate_sections"
+id="toc-ad_integration_sssd_merge_duplicate_sections">ad_integration_sssd_merge_duplicate_sections</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#example-playbook" id="toc-example-playbook">Example
@@ -240,15 +242,20 @@ href="https://www.mankier.com/8/adcli#Delegated_Permissions">Delegated
 Permissions</a> for the explicit permissions a user must have.</p>
 <p>Time must be in sync with Active Directory servers. The
 ad_integration role will use the timesync system role for this if the
-user specifies <code>ad_integration_manage_timesync</code> to true and
-provides a value for <code>ad_integration_timesync_source</code> to use
-as a timesource.</p>
+user specifies <a
+href="#ad_integration_manage_timesync">ad_integration_manage_timesync</a>
+to true and provides a value for <a
+href="#ad_integration_timesync_source">ad_integration_timesync_source</a>
+to use as a timesource.</p>
 <p>RHEL8 (and newer) and Fedora no longer support RC4 encryption out of
 the box, it is recommended to enable AES in Active Directory, if not
 possible then the AD-SUPPORT crypto policy must be enabled. The
 integration role will use the crypto_policies system role for this if
-the user sets the <code>ad_integration_manage_crypto_policies</code> and
-<code>ad_integration_allow_rc4_crypto</code> parameters to true.</p>
+the user sets the <a
+href="ad_integration_manage_crypto_policies">ad_integration_manage_crypto_policies</a>
+and <a
+href="#ad_integration_allow_rc4_crypto">ad_integration_allow_rc4_crypto</a>
+parameters to true.</p>
 <p>The Linux system must be able to resolve default AD DNS SRV
 records.</p>
 <p>The following firewall ports must be opened on the AD server side,
@@ -328,6 +335,22 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="
 <h2 id="required-variables">Required variables</h2>
 <h3 id="ad_integration_realm">ad_integration_realm</h3>
 <p>Active Directory realm, or domain name to join</p>
+<p><em>NOTE</em> If using this role to manage realm/domain specific
+settings in SSSD using (<a href="#ad_dyndns_update">ad_dyndns_update</a>
+or <a
+href="#ad_integration_sssd_custom_settings">ad_integration_sssd_custom_settings</a>,
+older versions of the role would make the realm name lower case in the
+domain section name. For example, if you had specified
+<code>ad_integration_realm: EXAMPLE.COM</code>, then the sssd.conf
+section would have been <code>[domain/example.com]</code>. The role now
+will instead use a case-insensitive match to look for an existing
+section in sssd.conf, which should already exist.</p>
+<p>The result of this is that you may have multiple sections for the
+domain in your sssd.conf. If you want to consolidate these sections into
+one, use <a
+href="#ad_integration_sssd_merge_duplicate_sections"><code>ad_integration_sssd_merge_duplicate_sections: true</code></a>.
+See below for more information about
+[ad_integration_sssd_merge_duplicate_sections(#ad_integration_sssd_merge_duplicate_sections).</p>
 <h3 id="ad_integration_password">ad_integration_password</h3>
 <p>The password of the user used to authenticate with when joining the
 machine to the realm. Do not use cleartext - use Ansible Vault to
@@ -372,14 +395,16 @@ DN.</p>
 <h3
 id="ad_integration_manage_timesync">ad_integration_manage_timesync</h3>
 <p>If true, the ad_integration role will use
-fedora.linux_system_roles.timesync. Requires providing a value for
-<code>ad_integration_timesync_source</code> to use as a time source.</p>
+fedora.linux_system_roles.timesync. Requires providing a value for <a
+href="#ad_integration_timesync_source">ad_integration_timesync_source</a>
+to use as a time source.</p>
 <p>Default: false</p>
 <h3
 id="ad_integration_timesync_source">ad_integration_timesync_source</h3>
 <p>Hostname or IP address of time source to synchronize the system clock
-with. Providing this variable automatically sets
-<code>ad_integration_manage_timesync</code> to true.</p>
+with. Providing this variable automatically sets <a
+href="#ad_integration_manage_timesync">ad_integration_manage_timesync</a>
+to true.</p>
 <h3
 id="ad_integration_manage_crypto_policies">ad_integration_manage_crypto_policies</h3>
 <p>If true, the ad_integration role will use
@@ -388,8 +413,9 @@ fedora.linux_system_roles.crypto_policies as needed</p>
 <h3
 id="ad_integration_allow_rc4_crypto">ad_integration_allow_rc4_crypto</h3>
 <p>If true, the ad_integration role will set the crypto policy allowing
-RC4 encryption. Providing this variable automatically sets
-ad_integration_manage_crypto_policies to true</p>
+RC4 encryption. Providing this variable automatically sets <a
+href="#ad_integration_manage_crypto_policies">ad_integration_manage_crypto_policies</a>
+to true</p>
 <p>Default: false</p>
 <h3 id="ad_integration_manage_dns">ad_integration_manage_dns</h3>
 <p>If true, the ad_integration role will use
@@ -405,70 +431,80 @@ connection type to configure</li>
 </ul>
 <h3 id="ad_integration_dns_server">ad_integration_dns_server</h3>
 <p>IP address of DNS server to add to existing networking configuration.
-Only applicable if <code>ad_integration_manage_dns</code> is true</p>
+Only applicable if <a
+href="#ad_integration_manage_dns">ad_integration_manage_dns</a> is
+true</p>
 <h3
 id="ad_integration_dns_connection_name">ad_integration_dns_connection_name</h3>
 <p>The name option identifies the connection profile to be configured by
 the network role. It is not the name of the networking interface for
-which the profile applies. Only applicable if
-<code>ad_integration_manage_dns</code> is true</p>
+which the profile applies. Only applicable if <a
+href="#ad_integration_manage_dns">ad_integration_manage_dns</a> is
+true</p>
 <h3
 id="ad_integration_dns_connection_type">ad_integration_dns_connection_type</h3>
 <p>Network connection type such as ethernet, bridge, bond...etc, the
-network role contains a list of possible values. Only applicable if
-<code>ad_integration_manage_dns</code> is true</p>
+network role contains a list of possible values. Only applicable if <a
+href="#ad_integration_manage_dns">ad_integration_manage_dns</a> is
+true</p>
 <h3 id="ad_dyndns_update">ad_dyndns_update</h3>
 <p>If true, SSSD is configured to automatically update the AD DNS server
 with the IP address of the client.</p>
+<p><em>NOTE</em>: See the <a
+href="#ad_integration_realm">ad_integration_realm</a>, and <a
+href="#ad_integration_sssd_merge_duplicate_sections">ad_integration_sssd_merge_duplicate_sections</a>
+for information about how the role writes these settings to the
+sssd.conf file.</p>
 <p>Default: false</p>
 <h3 id="ad_dyndns_ttl">ad_dyndns_ttl</h3>
 <p>Optional. The TTL, in seconds, to apply to the client's DNS record
-when updating it. Only applicable if <code>ad_dyndns_update</code> is
-true</p>
+when updating it. Only applicable if <a
+href="#ad_dyndns_update">ad_dyndns_update</a> is true</p>
 <p><strong>Note:</strong> This will override the TTL set by an
 administrator on the server.</p>
 <p>Default: 3600</p>
 <h3 id="ad_dyndns_iface">ad_dyndns_iface</h3>
 <p>Optional. Interface or a list of interfaces whose IP addresses should
 be used for dynamic DNS updates. Special value "*" implies all IPs from
-all interfaces should be used. Only applicable if
-<code>ad_dyndns_update</code> is true</p>
+all interfaces should be used. Only applicable if <a
+href="#ad_dyndns_update">ad_dyndns_update</a> is true</p>
 <p>Default: Use the IP addresses of the interface which is used for AD
 LDAP connection</p>
 <h3 id="ad_dyndns_refresh_interval">ad_dyndns_refresh_interval</h3>
 <p>Optional. How often should, in seconds, periodic DNS updates be
 performed in addition to when the back end goes online. Only applicable
-if <code>ad_dyndns_update</code> is true</p>
+if <a href="#ad_dyndns_update">ad_dyndns_update</a> is true</p>
 <p><strong>Note:</strong> lowest possible value is 60 seconds. If value
 less than 60 is specified sssd will assume lowest value only.</p>
 <p>Default: 86400</p>
 <h3 id="ad_dyndns_update_ptr">ad_dyndns_update_ptr</h3>
 <p>Optional. If true, the PTR record should also be explicitly updated.
-Only applicable if <code>ad_dyndns_update</code> is true</p>
+Only applicable if <a href="#ad_dyndns_update">ad_dyndns_update</a> is
+true</p>
 <p>Default: true</p>
 <h3 id="ad_dyndns_force_tcp">ad_dyndns_force_tcp</h3>
 <p>Optional. If true, the nsupdate utility should default to using TCP
-for communicating with the DNS server. Only applicable if
-<code>ad_dyndns_update</code> is true</p>
+for communicating with the DNS server. Only applicable if <a
+href="#ad_dyndns_update">ad_dyndns_update</a> is true</p>
 <p>Default: false</p>
 <h3 id="ad_dyndns_auth">ad_dyndns_auth</h3>
 <p>Optional. If true, GSS-TSIG authentication will be used for secure
 updates with the DNS server when updating A and AAAA records. Only
-applicable if <code>ad_dyndns_update</code> is true</p>
+applicable if <a href="#ad_dyndns_update">ad_dyndns_update</a> is
+true</p>
 <p>Default: true</p>
 <h3 id="ad_dyndns_server">ad_dyndns_server</h3>
 <p>Optional. DNS server to use when performing a DNS update when
-autodetection settings fail. Only applicable if
-<code>ad_dyndns_update</code> is true</p>
+autodetection settings fail. Only applicable if <a
+href="#ad_dyndns_update">ad_dyndns_update</a> is true</p>
 <p>Default: None (let nsupdate choose the server)</p>
 <h3
 id="ad_integration_join_parameters">ad_integration_join_parameters</h3>
 <p>Additional parameters (as a string) supplied directly to the realm
 join command. Useful if some specific configuration like
---user-principal=host/name@REALM or --use-ldaps is needed. See man realm
-for details. Example: ad_integration_join_parameters: "--user-principal
-host/<a
-href="mailto:client007@EXAMPLE.COM">client007@EXAMPLE.COM</a>"</p>
+<code>--user-principal=host/name@REALM</code> or
+<code>--use-ldaps</code> is needed. See man realm for details. Example:
+<code>ad_integration_join_parameters: "--user-principal host/client007@EXAMPLE.COM"</code></p>
 <h3 id="ad_integration_sssd_settings">ad_integration_sssd_settings</h3>
 <p>A list of setting to be included into the <code>[sssd]</code> section
 of the sssd.conf file. See sssd.conf man pages for details. Example:</p>
@@ -485,6 +521,11 @@ sssd.conf man pages for details. Example:</p>
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_custom_settings</span><span class="kw">:</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">key</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_name&quot;</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">value</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_value&quot;</span></span></code></pre></div>
+<p><em>NOTE</em>: See the <a
+href="#ad_integration_realm">ad_integration_realm</a> and <a
+href="#ad_integration_sssd_merge_duplicate_sections">ad_integration_sssd_merge_duplicate_sections</a>
+for information about how the role writes these settings to the
+sssd.conf file.</p>
 <h3
 id="ad_integration_preserve_authselect_profile">ad_integration_preserve_authselect_profile</h3>
 <p>This is a boolean, default is <code>false</code>. If
@@ -499,21 +540,43 @@ id="ad_integration_manage_packages">ad_integration_manage_packages</h3>
 Directory integration. If <code>false</code>, the role assumes that all
 prerequisites are already in place and skips package installation.</p>
 <p>Default: true</p>
+<h3
+id="ad_integration_sssd_merge_duplicate_sections">ad_integration_sssd_merge_duplicate_sections</h3>
+<p><em>NOTE WELL</em>: This will do a <a
+href="#ad_integration_force_rejoin">force rejoin</a> as this is the only
+way to clean up sssd.conf and ensure all of the settings are applied
+correctly after merging.</p>
+<p>This is a boolean, default is <code>false</code>. Because the
+domain/realm section in sssd.conf is case insensitive, and you have
+previously used the role to manage domain/realm settings in sssd.conf,
+there may be multiple sections matching the domain/realm. If you want to
+consolidate these sections into one, use
+<code>ad_integration_sssd_merge_duplicate_sections: true</code>. For
+example, if you have a sssd.conf with both
+<code>[domain/example.com]</code> and <code>[domain/EXAMPLE.COM]</code>,
+and you want to use only the latter, then use:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> EXAMPLE.COM</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_merge_duplicate_sections</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_custom_settings</span><span class="kw">:</span><span class="at"> somesettings</span></span></code></pre></div>
+<p>All of the settings from <code>[domain/example.com]</code> will be
+moved to <code>[domain/EXAMPLE.COM]</code>, and the section
+<code>[domain/example.com]</code> will be removed from sssd.conf.</p>
 <h1 id="example-playbook">Example Playbook</h1>
 <p>The following is an example playbook to setup direct Active Directory
 integration with AD domain <code>domain.example.com</code>, the join
 will be performed with user Administrator using the vault stored
 password. Prior to the join, the crypto policy for AD SUPPORT with RC4
 encryption allowed will be set.</p>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;domain.example.com&quot;</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> !vault | …vault encrypted password…</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_manage_crypto_policies</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_allow_rc4_crypto</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">roles</span><span class="kw">:</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> linux-system-roles.ad_integration</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;domain.example.com&quot;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> !vault | …vault encrypted password…</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_manage_crypto_policies</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_allow_rc4_crypto</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">roles</span><span class="kw">:</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> linux-system-roles.ad_integration</span></span></code></pre></div>
 <h1 id="rpm-ostree">rpm-ostree</h1>
 <p>See README-ostree.md</p>
 <h1 id="license">License</h1>
