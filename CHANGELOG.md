@@ -1,6 +1,22 @@
 Changelog
 =========
 
+[1.6.0] - 2025-07-02
+--------------------
+
+### New Features
+
+- feat: search for name of domain/realm in sssd.conf; merge settings if duplicates (#145)
+
+### Other Changes
+
+- ci: Bump sclorg/testing-farm-as-github-action from 3 to 4 (#136)
+- ci: bump tox-lsr to 3.8.0; rename qemu/kvm tests (#137)
+- ci: Add Fedora 42; use tox-lsr 3.9.0; use lsr-report-errors for qemu tests (#138)
+- ci: Update dyndns test for Fedora 42 and RHEL 10 (#139)
+- ci: Add support for bootc end-to-end validation tests (#140)
+- ci: Use ansible 2.19 for fedora 42 testing; support python 3.13 (#144)
+
 [1.5.0] - 2025-04-28
 --------------------
 
