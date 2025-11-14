@@ -111,7 +111,7 @@
     - ad_integration_manage_crypto_policies | bool
     # Fedora and RHEL8+
     - (ansible_distribution == "Fedora" or
-      (ansible_distribution in ['CentOS', 'RedHat'] and
+      (ansible_distribution in __lsr_redhat_clones and
        ansible_distribution_version is version('8', '>=')))
 
 ## RHEL9 uses the AD-SUPPORT-LEGACY policy for RC4,
@@ -123,7 +123,7 @@
     crypto_policies_policy: "DEFAULT:AD-SUPPORT-LEGACY"
   when:
     - ad_integration_allow_rc4_crypto | bool
-    - ansible_distribution in ['CentOS', 'RedHat']
+    - ansible_distribution in __lsr_redhat_clones
     - ansible_distribution_version is version('9', '>=')
 
 - name: Grab existing domain settings from sssd.conf if we want to merge
