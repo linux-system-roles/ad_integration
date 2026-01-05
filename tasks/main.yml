@@ -110,9 +110,9 @@
   when:
     - ad_integration_manage_crypto_policies | bool
     # Fedora and RHEL8+
-    - (ansible_distribution == "Fedora" or
-      (ansible_distribution in __ad_integration_rh_distros and
-       ansible_distribution_version is version('8', '>=')))
+    - (ansible_facts['distribution'] == "Fedora" or
+      (ansible_facts['distribution'] in __ad_integration_rh_distros and
+       ansible_facts['distribution_version'] is version('8', '>=')))
 
 ## RHEL9 uses the AD-SUPPORT-LEGACY policy for RC4,
 ## otherwise AD-SUPPORT allows it
@@ -123,8 +123,8 @@
     crypto_policies_policy: "DEFAULT:AD-SUPPORT-LEGACY"
   when:
     - ad_integration_allow_rc4_crypto | bool
-    - ansible_distribution in __ad_integration_rh_distros
-    - ansible_distribution_version is version('9', '>=')
+    - ansible_facts['distribution'] in __ad_integration_rh_distros
+    - ansible_facts['distribution_version'] is version('9', '>=')
 
 - name: Grab existing domain settings from sssd.conf if we want to merge
   when: ad_integration_sssd_merge_duplicate_sections | bool
@@ -347,8 +347,8 @@
         # For dynamic dns to work the machine either needs fqdn in hostname
         # or ad_hostname needs to be defined.
         - key: ad_hostname
-          value: "{{ ansible_hostname + '.' + ad_integration_realm | lower
-            | string if '.' not in ansible_hostname else '' }}"
+          value: "{{ ansible_facts['hostname'] + '.' + ad_integration_realm | lower
+            | string if '.' not in ansible_facts['hostname'] else '' }}"
       when:
         - ad_dyndns_update | bool
         - item.value is not none
