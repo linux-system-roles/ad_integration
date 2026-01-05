@@ -123,13 +123,13 @@
             # in my situation my ansible control host is on a different network and
             # DNS than the VMs I am testing against.
             - name: Get IP for host's FQDN
-              command: dig +short {{ ansible_fqdn }} A
+              command: dig +short {{ ansible_facts['fqdn'] }} A
               register: dig_hostname
               changed_when: false
               failed_when: false
 
             - name: Get hostname for host's IP address
-              command: dig +short -x {{ ansible_default_ipv4.address }} PTR
+              command: dig +short -x {{ ansible_facts['default_ipv4']['address'] }} PTR
               register: dig_ip
               changed_when: false
               failed_when: false
@@ -138,9 +138,9 @@
               assert:
                 that:
                   - "'{{ dig_hostname.stdout }}' ==
-                    '{{ ansible_default_ipv4.address }}'"
-                  - "'{{ dig_ip.stdout }}' == '{{ ansible_fqdn }}.'"
-              when: ansible_default_ipv4.address is defined
+                    '{{ ansible_facts['default_ipv4']['address'] }}'"
+                  - "'{{ dig_ip.stdout }}' == '{{ ansible_facts['fqdn'] }}.'"
+              when: ansible_facts['default_ipv4']['address'] is defined
 
       always:
         - name: Cleanup fake realm

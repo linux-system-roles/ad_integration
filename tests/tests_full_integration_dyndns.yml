@@ -70,7 +70,7 @@
         - name: Debug dyndns settings
           debug:
             msg: >-
-              Interface {{ _ad_dyndns_iface | default(ansible_default_ipv4.interface) }} and server
+              Interface {{ _ad_dyndns_iface | default(ansible_facts['default_ipv4']['interface']) }} and server
               : {{ hostvars[groups['ad'][0]].ansible_host }}
         - name: Run the system role with proper config
           include_role:
@@ -78,7 +78,7 @@
             public: true
           vars:
             ad_dyndns_server: "{{ hostvars[groups['ad'][0]].ansible_host }}"
-            ad_dyndns_iface: "{{ _ad_dyndns_iface | default(ansible_default_ipv4.interface) }}"
+            ad_dyndns_iface: "{{ _ad_dyndns_iface | default(ansible_facts['default_ipv4']['interface']) }}"
             ad_dyndns_auth: "none"
             ad_dyndns_update: true
             ad_dyndns_refresh_interval: 60
@@ -108,13 +108,13 @@
           changed_when: false
         - name: Get IP for host's FQDN
           command: >-
-            dig +short {{ ansible_fqdn }}.{{
+            dig +short {{ ansible_facts['fqdn'] }}.{{
             hostvars[groups['client'][0]].ad_integration_realm }} A
           register: dig_hostname
           changed_when: false
           failed_when: false
         - name: Get hostname for host's IP address
-          command: "dig +short -x {{ ansible_default_ipv4.address }} PTR"
+          command: "dig +short -x {{ ansible_facts['default_ipv4']['address'] }} PTR"
           register: dig_ip
           changed_when: false
           failed_when: false
