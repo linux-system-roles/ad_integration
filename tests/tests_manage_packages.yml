@@ -30,8 +30,7 @@
 
         # role will fail if ad_integration_manage_packages is not handled correctly
         - name: Run the role with ad_integration_manage_packages
-          include_role:
-            name: linux-system-roles.ad_integration
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             ad_integration_manage_packages: false
 

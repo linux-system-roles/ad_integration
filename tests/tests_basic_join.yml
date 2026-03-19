@@ -2,7 +2,6 @@
 ---
 - name: Ensure that the role runs with mandatory parameters populated
   hosts: all,!ad
-  gather_facts: false  # test that role works in this case
   vars:
     # sample realm that will skip joining realm step
     ad_integration_realm: "{{ __ad_integration_sample_realm }}"
@@ -14,8 +13,7 @@
         __ad_integration_sample_realm: MiXeD.cAsE
 
     - name: Test - Run the system role
-      include_role:
-        name: linux-system-roles.ad_integration
+      include_tasks: tasks/run_role_with_clear_facts.yml
 
     - name: Test - Check packages are present
       block:

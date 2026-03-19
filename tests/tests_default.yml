@@ -2,13 +2,11 @@
 ---
 - name: Ensure role behaviour with default parameters
   hosts: all,!ad
-  gather_facts: false  # test that role works in this case
   tasks:
     - name: Verify that the role fails without ad_integration_realm variable
       block:
         - name: Include the role
-          include_role:
-            name: linux-system-roles.ad_integration
+          include_tasks: tasks/run_role_with_clear_facts.yml
 
       rescue:
         - name: Assert that user is notified about missing variables

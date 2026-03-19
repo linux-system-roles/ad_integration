@@ -2,7 +2,6 @@
 ---
 - name: Ensure that the role migrates sssd domain settings depending on case
   hosts: all,!ad
-  gather_facts: true
   vars:
     ad_integration_realm: MIGRATE.REALM.COM
     __ad_integration_test_sssd_config_only: true
@@ -58,8 +57,7 @@
             __ad_integration_realm_list: "domain-name: {{ ad_integration_realm }}"
 
         - name: Test - Run the system role merging duplicate sssd domain sections
-          include_role:
-            name: linux-system-roles.ad_integration
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             ad_integration_sssd_custom_settings: "{{ __ad_integration_sssd_custom_settings +
               __ad_integration_sssd_custom_settings2 + __ad_integration_sssd_custom_settings3 }}"

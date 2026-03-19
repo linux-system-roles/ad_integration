@@ -30,7 +30,6 @@
 
 - name: Configure DynDNS on AD
   hosts: ad
-  gather_facts: true
   tasks:
     - name: Get AD address
       set_fact:
@@ -62,7 +61,6 @@
 
 - name: Ensure that the role configures dynamic dns
   hosts: client
-  gather_facts: true
   tasks:
     - name: Run the integration
       when: "'ad' in groups and groups['ad']"
@@ -73,10 +71,9 @@
               Interface {{ _ad_dyndns_iface | default(ansible_facts['default_ipv4']['interface']) }} and server
               : {{ hostvars[groups['ad'][0]].ansible_host }}
         - name: Run the system role with proper config
-          include_role:
-            name: linux-system-roles.ad_integration
-            public: true
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
+            __sr_public: true
             ad_dyndns_server: "{{ hostvars[groups['ad'][0]].ansible_host }}"
             ad_dyndns_iface: "{{ _ad_dyndns_iface | default(ansible_facts['default_ipv4']['interface']) }}"
             ad_dyndns_auth: "none"
@@ -126,7 +123,6 @@
 
 - name: Check hosts on AD
   hosts: ad
-  gather_facts: true
   tasks:
     - name: Get network for zone
       set_fact:

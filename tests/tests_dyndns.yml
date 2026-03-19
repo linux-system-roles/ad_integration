@@ -19,7 +19,6 @@
 
 - name: Ensure that the role configures dynamic dns
   hosts: all,!ad
-  gather_facts: true
   vars:
     # if we don't have a real AD server, just verify the config
     # file is written properly
@@ -38,10 +37,9 @@
           when: __ad_integration_test_sssd_config_only
 
         - name: Test - Run the system role with bogus vars
-          include_role:
-            name: linux-system-roles.ad_integration
-            public: true
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
+            __sr_public: true
             ad_dyndns_iface: TESTING
             ad_dyndns_server: 127.0.0.1
             ad_dyndns_auth: GSS-TSIG
@@ -82,8 +80,7 @@
           when: sssd_log.stdout | length > 0
 
         - name: Test - Re-run the system role to remove vars
-          include_role:
-            name: linux-system-roles.ad_integration
+          include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             ad_dyndns_iface: null
             ad_dyndns_server: null
