@@ -3,7 +3,6 @@
 
 - name: Ensure that the role configures dynamic dns
   hosts: all,!ad
-  gather_facts: false  # test that role works in this case
   vars:
     ad_integration_realm: sample-realm.com
     __ad_integration_test_sssd_config_only: true
@@ -15,9 +14,9 @@
 
   tasks:
     - name: Test - Run the system role with bogus vars
-      include_role:
-        name: linux-system-roles.ad_integration
-        public: true
+      include_tasks: tasks/run_role_with_clear_facts.yml
+      vars:
+        __sr_public: true
 
     - name: Check SSSD settings
       community.general.ini_file:
@@ -52,8 +51,7 @@
           map('combine', {'state': 'absent'}) | list }}"
 
     - name: Test - Re-run the system role to remove vars
-      include_role:
-        name: linux-system-roles.ad_integration
+      include_tasks: tasks/run_role_with_clear_facts.yml
       vars:
         ad_integration_sssd_settings: "{{ update_list }}"
 
