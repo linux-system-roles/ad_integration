@@ -45,7 +45,6 @@ _value:
 import sys
 
 from ansible.errors import AnsibleFilterError
-from ansible.module_utils.six import string_types
 from ansible.module_utils.six.moves import StringIO
 
 if sys.version_info.major == 3:
@@ -53,6 +52,11 @@ if sys.version_info.major == 3:
 else:
     # use RawConfigParser because it uses interpolation=None
     from ConfigParser import RawConfigParser as ConfigParser
+
+try:
+    lsr_string_types = (basestring,)
+except NameError:
+    lsr_string_types = (str,)
 
 
 class IniParser(ConfigParser):
@@ -86,7 +90,7 @@ class IniParser(ConfigParser):
 def from_ini(obj):
     """Read the given string as INI file and return a dict"""
 
-    if not isinstance(obj, string_types):
+    if not isinstance(obj, lsr_string_types):
         raise AnsibleFilterError("from_ini requires a str, got %s" % type(obj))
 
     parser = IniParser()
