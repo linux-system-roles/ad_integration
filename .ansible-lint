@@ -20,6 +20,7 @@ exclude_paths:
   - .github/
   - .markdownlint.yaml
   - examples/roles/
+  - .collection/
 mock_modules:
   - win_domain_group
   - win_domain_user
