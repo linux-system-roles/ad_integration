@@ -1,1 +1,2 @@
 tests/ad_integration/templates/fake_realm.py.j2 shebang!skip
+plugins/modules/sr_fingerprint.py validate-modules:missing-gplv3-license
