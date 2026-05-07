@@ -214,6 +214,8 @@ id="toc-ad_integration_preserve_authselect_profile">ad_integration_preserve_auth
 id="toc-ad_integration_manage_packages">ad_integration_manage_packages</a></li>
 <li><a href="#ad_integration_sssd_merge_duplicate_sections"
 id="toc-ad_integration_sssd_merge_duplicate_sections">ad_integration_sssd_merge_duplicate_sections</a></li>
+<li><a href="#ad_integration_secure_logging"
+id="toc-ad_integration_secure_logging">ad_integration_secure_logging</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#example-playbook" id="toc-example-playbook">Example
@@ -562,6 +564,20 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="
 <p>All of the settings from <code>[domain/example.com]</code> will be
 moved to <code>[domain/EXAMPLE.COM]</code>, and the section
 <code>[domain/example.com]</code> will be removed from sssd.conf.</p>
+<h3
+id="ad_integration_secure_logging">ad_integration_secure_logging</h3>
+<p>If <code>true</code>, suppress potentially sensitive output from
+tasks that handle credentials, secrets, and other sensitive data by
+setting <code>no_log: true</code> on those tasks. This prevents
+passwords, API tokens, private keys, and similar sensitive information
+from appearing in Ansible logs and console output.</p>
+<p>If you need to debug issues with credential handling or secret
+management, you can temporarily set
+<code>ad_integration_secure_logging: false</code> to see the full output
+from these tasks. However, be aware that this may expose sensitive
+information in logs, so it should only be used in development or
+troubleshooting scenarios.</p>
+<p>Default: true</p>
 <h1 id="example-playbook">Example Playbook</h1>
 <p>The following is an example playbook to setup direct Active Directory
 integration with AD domain <code>domain.example.com</code>, the join
