@@ -143,18 +143,18 @@
         path: "{{ __ad_integration_sssd_conf }}"
       register: __ad_sssd_conf_content
       when: __ad_sssd_conf_stat.stat.exists
-      no_log: true
+      no_log: "{{ ad_integration_secure_logging }}"
 
     - name: Set variables we will need for merging - 1
       set_fact:
         __ad_integration_matching_sections_before: "{{ __ad_sssd_conf | dict2items | selectattr('key', 'match', '(?i)' ~ __ad_sssd_section ~ '$') |
           list | items2dict }}"
-      no_log: true
+      no_log: "{{ ad_integration_secure_logging }}"
 
     - name: Set variables we will need for merging - 2
       set_fact:
         __ad_integration_has_duplicates: "{{ __ad_integration_matching_sections_before | length > 1 }}"
-      no_log: true
+      no_log: "{{ ad_integration_secure_logging }}"
 
 ## Handle rejoin, if applicable
 - name: Check if we are already joined to a domain
@@ -206,7 +206,7 @@
       {{ __ad_integration_realm_cmd | quote }} join -U {{ ad_integration_user | quote }} --membership-software
       {{ ad_integration_membership_software | quote }}
       {{ ad_integration_join_to_dc | quote }}
-  no_log: true
+  no_log: "{{ ad_integration_secure_logging }}"
   when: ad_integration_join_to_dc is not none
 
 - name: Build Join Command - Perform discovery-based realm join operation
@@ -220,7 +220,7 @@
       {{ __ad_integration_realm_cmd | quote }} join -U {{ ad_integration_user | quote }} --membership-software
       {{ ad_integration_membership_software | quote }}
       {{ ad_integration_realm | quote }}
-  no_log: true
+  no_log: "{{ ad_integration_secure_logging }}"
   when: ad_integration_join_to_dc is none
 
 - name: Show the join command for debug
@@ -241,7 +241,7 @@
   command: "{{ __ad_integration_join_command }}"
   args:
     stdin: "{{ ad_integration_password }}"
-  no_log: true
+  no_log: "{{ ad_integration_secure_logging }}"
   when:
     - ad_integration_join_to_dc != __ad_integration_sample_dc
     - ad_integration_realm != __ad_integration_sample_realm

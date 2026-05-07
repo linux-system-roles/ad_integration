@@ -289,6 +289,20 @@ All of the settings from `[domain/example.com]` will be moved to
 `[domain/EXAMPLE.COM]`, and the section `[domain/example.com]` will be removed
 from sssd.conf.
 
+#### ad_integration_secure_logging
+
+If `true`, suppress potentially sensitive output from tasks that handle
+credentials, secrets, and other sensitive data by setting `no_log: true` on
+those tasks. This prevents passwords, API tokens, private keys, and similar
+sensitive information from appearing in Ansible logs and console output.
+
+If you need to debug issues with credential handling or secret management, you
+can temporarily set `ad_integration_secure_logging: false` to see the full output from
+these tasks. However, be aware that this may expose sensitive information in
+logs, so it should only be used in development or troubleshooting scenarios.
+
+Default: true
+
 ## Example Playbook
 
 The following is an example playbook to setup direct Active Directory integration with AD domain `domain.example.com`, the join will be performed with user Administrator using the vault stored password. Prior to the join, the crypto policy for AD SUPPORT with RC4 encryption allowed will be set.

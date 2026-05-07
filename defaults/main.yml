@@ -155,3 +155,7 @@ ad_integration_manage_packages: true
 # to true, then the role will consolidate the data from those duplicate sections
 # and remove the duplicate sections
 ad_integration_sssd_merge_duplicate_sections: false
+
+# If true, suppress potentially sensitive output from tasks that
+# handle credentials, secrets, and other sensitive data.
+ad_integration_secure_logging: true
