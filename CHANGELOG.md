@@ -1,6 +1,17 @@
 Changelog
 =========
 
+[1.8.0] - 2026-05-07
+--------------------
+
+### New Features
+
+- feat: new variable `ad_integration_secure_logging` defaulting to `true` (#192)
+
+### Other Changes
+
+- ci: Bump actions/github-script from 8 to 9 (#191)
+
 [1.7.0] - 2026-04-28
 --------------------
 
