@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Ensure ad_integration configures crypto policy and handles reboot
+  hosts: all,!ad
+  tags:
+    - tests::reboot
+  vars:
+    ad_integration_realm: sample-realm.com
+    ad_integration_allow_rc4_crypto: true
+  tasks:
+    - name: Include rh distro vars
+      include_vars: vars/rh_distros_vars.yml
+
+    - name: End host if crypto policies are not managed on this platform
+      meta: end_host
+      when: not (
+        ansible_facts['distribution'] == "Fedora" or
+        (ansible_facts['distribution'] in __ad_integration_rh_distros and
+         ansible_facts['distribution_version'] is version('8', '>='))
+        )
+
+    - name: Get current crypto policy
+      include_role:
+        name: fedora.linux_system_roles.crypto_policies
+      vars:
+        crypto_policies_policy: null
+
+    - name: Set vars for current crypto policy and expected crypto policy
+      set_fact:
+        __current_crypto_policy: "{{ crypto_policies_active | d('') }}"
+        __expected_crypto_policy: >-
+          {{ 'DEFAULT:AD-SUPPORT-LEGACY'
+             if ansible_facts['distribution'] in __ad_integration_rh_distros
+             and ansible_facts['distribution_version'] is version('9', '>=')
+             else 'DEFAULT:AD-SUPPORT' }}
+
+    - name: Read boot id before test
+      slurp:
+        src: /proc/sys/kernel/random/boot_id
+      register: __boot_id_before
+      changed_when: false
+
+    - name: Run test
+      when: __current_crypto_policy != __expected_crypto_policy
+      block:
+        - name: Run ad_integration role with ad_integration_allow_rc4_crypto set to true
+          include_tasks: tasks/run_role_with_clear_facts.yml
+          vars:
+            __sr_public: true
+
+        - name: Flush handlers
+          meta: flush_handlers
+
+        - name: Verify crypto policy was applied and reboot completed
+          assert:
+            that:
+              - crypto_policies_active == __expected_crypto_policy
+              - not crypto_policies_reboot_required
+
+        - name: Read boot id after reboot
+          slurp:
+            src: /proc/sys/kernel/random/boot_id
+          register: __boot_id_after_reboot
+          changed_when: false
+
+        - name: Check system was rebooted
+          assert:
+            that:
+              - __boot_id_after_reboot.content != __boot_id_before.content
+
+      always:
+        - name: Restore crypto policy to original policy
+          tags:
+            - tests::cleanup
+          include_role:
+            name: fedora.linux_system_roles.crypto_policies
+          vars:
+            crypto_policies_policy: "{{ __current_crypto_policy }}"
+            crypto_policies_reboot_ok: true
+
+        - name: Flush handlers after cleanup
+          tags:
+            - tests::cleanup
+          meta: flush_handlers

@@ -27,7 +27,7 @@
     ad_integration_manage_crypto_policies: true
   when: ad_integration_allow_rc4_crypto | bool
 
-- name: Ensure manage_crypt_policies is set with crypto_allow_rc4
+- name: Ensure ad_integration_manage_crypto_policies is set if ad_integration_allow_rc4_crypto is true
   fail:
     msg: >-
       ad_integration_manage_crypto_policies must be true if
@@ -107,6 +107,7 @@
     name: fedora.linux_system_roles.crypto_policies
   vars:
     crypto_policies_policy: "DEFAULT:AD-SUPPORT"
+    crypto_policies_reboot_ok: true
   when:
     - ad_integration_manage_crypto_policies | bool
     # Fedora and RHEL8+
@@ -121,6 +122,7 @@
     name: fedora.linux_system_roles.crypto_policies
   vars:
     crypto_policies_policy: "DEFAULT:AD-SUPPORT-LEGACY"
+    crypto_policies_reboot_ok: true
   when:
     - ad_integration_allow_rc4_crypto | bool
     - ansible_facts['distribution'] in __ad_integration_rh_distros
