@@ -141,6 +141,8 @@ If true, the ad_integration role will set the crypto policy allowing RC4 encrypt
 
 Default: false
 
+**NOTE**: This may reboot the machine in order to apply the crypto policy, which is needed for the subsequent realm join.
+
 #### ad_integration_manage_dns
 
 If true, the ad_integration role will use fedora.linux_system_roles.network to add the provided dns server (see below) with manual DNS configuration to an existing connection. If true then the following variables are required:
