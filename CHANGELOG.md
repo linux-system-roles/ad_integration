@@ -1,6 +1,19 @@
 Changelog
 =========
 
+[1.8.1] - 2026-05-21
+--------------------
+
+### Bug Fixes
+
+- fix: set crypto_policies_reboot_ok to reboot and apply RC4 crypto policy (#194)
+
+### Other Changes
+
+- refactor: use ansible.posix 2.1.X for EL7 compatibility [citest_skip] (#195)
+- ci: Add config file for CodeRabbit with custom rules (#196)
+- ci: Skip reviews for PRs with [citest_skip] in the title (#197)
+
 [1.8.0] - 2026-05-07
 --------------------
 
