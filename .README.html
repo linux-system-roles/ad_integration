@@ -419,6 +419,8 @@ RC4 encryption. Providing this variable automatically sets <a
 href="#ad_integration_manage_crypto_policies">ad_integration_manage_crypto_policies</a>
 to true</p>
 <p>Default: false</p>
+<p><strong>NOTE</strong>: This may reboot the machine in order to apply
+the crypto policy, which is needed for the subsequent realm join.</p>
 <h3 id="ad_integration_manage_dns">ad_integration_manage_dns</h3>
 <p>If true, the ad_integration role will use
 fedora.linux_system_roles.network to add the provided dns server (see
