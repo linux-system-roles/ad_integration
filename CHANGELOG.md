@@ -1,6 +1,13 @@
 Changelog
 =========
 
+[1.8.2] - 2026-06-24
+--------------------
+
+### Other Changes
+
+- test: remove unused files [citest_skip] (#199)
+
 [1.8.1] - 2026-05-21
 --------------------
 
