@@ -1,6 +1,22 @@
 Changelog
 =========
 
+[1.9.0] - 2026-08-06
+--------------------
+
+### New Features
+
+- feat: Write roles fingerprints to /var/log/sysroles.jsonl [citest_skip] (#208)
+
+### Other Changes
+
+- ci: Bump actions/checkout from 6 to 7 (#201)
+- ci: Use our own pr_title_lint.py instead of NPM commitlint [citest_skip] (#202)
+- ci: bump tox-lsr version to 3.20.0 to fix tox 4.58 api breakage [citest_skip] (#203)
+- ci: Add support for Fedora 44 and drop Fedora 42 - use ansible-core 2.21 [citest_skip] (#205)
+- ci: Bump actions/setup-python from 6 to 7 (#206)
+- ci: ensure dependabot updates do not invoke ci tests [citest_skip] (#207)
+
 [1.8.2] - 2026-06-24
 --------------------
 
