@@ -32,6 +32,8 @@ __ad_integration_sssd_conf: /etc/sssd/sssd.conf
 # realm command
 __ad_integration_realm_cmd: realm
 
+__ad_integration_write_log_file: false
+
 # BEGIN - DO NOT EDIT THIS BLOCK - rh distros variables
 # Ansible distribution identifiers that the role treats like RHEL
 __ad_integration_rh_distros:
