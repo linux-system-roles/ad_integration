@@ -13,6 +13,9 @@
         value: addomain.xyz
 
   tasks:
+    - name: Include RH distros variables
+      include_vars: vars/rh_distros_vars.yml
+
     - name: See if /dev/log exists for the fingerprint check
       stat:
         path: /dev/log
@@ -72,6 +75,24 @@
               - __begin_date in __file_content
               - __success_date in __file_content
 
+    # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
+    - name: Check SSSD settings - EL7
+      ini_file:  # noqa fqcn
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: "{{ item.state | default('present') }}"
+        section: sssd
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ ad_integration_sssd_settings }}"
+      register: __result
+      failed_when: __result is changed
+      when:
+        - __ad_integration_is_rh_distro_7
+
     - name: Check SSSD settings
       community.general.ini_file:
         path: "{{ __ad_integration_sssd_conf }}"
@@ -86,6 +107,7 @@
       loop: "{{ ad_integration_sssd_settings }}"
       register: __result
       failed_when: __result is changed
+      when: not __ad_integration_is_rh_distro_7
 
     - name: Search /var/log/sssd/sssd.log for [sss_ini_call_validators]
       command: >-
@@ -109,6 +131,24 @@
       vars:
         ad_integration_sssd_settings: "{{ update_list }}"
 
+    # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
+    - name: Check custom SSSD settings - EL7
+      ini_file:  # noqa fqcn
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: "{{ item.state | default('present') }}"
+        section: sssd
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ update_list }}"
+      register: __result
+      failed_when: __result is changed
+      when:
+        - __ad_integration_is_rh_distro_7
+
     - name: Check custom SSSD settings
       community.general.ini_file:
         path: "{{ __ad_integration_sssd_conf }}"
@@ -123,3 +163,4 @@
       loop: "{{ update_list }}"
       register: __result
       failed_when: __result is changed
+      when: not __ad_integration_is_rh_distro_7

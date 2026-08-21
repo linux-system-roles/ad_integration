@@ -13,6 +13,9 @@
         value: /bin/bash
 
   tasks:
+    - name: Include RH distros variables
+      include_vars: vars/rh_distros_vars.yml
+
     - name: Run test
       block:
         - name: Setup fake realm
@@ -24,6 +27,24 @@
           include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             __sr_public: true
+
+        # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
+        - name: Check custom SSSD settings - EL7
+          ini_file:  # noqa fqcn
+            path: "{{ __ad_integration_sssd_conf }}"
+            state: "{{ item.state | default('present') }}"
+            section: domain/{{ ad_integration_realm }}
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+            create: true
+            owner: root
+            group: root
+            mode: u=rw,g=,o=
+          loop: "{{ ad_integration_sssd_custom_settings }}"
+          register: __result
+          failed_when: __result is changed
+          when:
+            - __ad_integration_is_rh_distro_7
 
         - name: Check custom SSSD settings
           community.general.ini_file:
@@ -39,6 +60,7 @@
           loop: "{{ ad_integration_sssd_custom_settings }}"
           register: __result
           failed_when: __result is changed
+          when: not __ad_integration_is_rh_distro_7
 
         - name: Search /var/log/sssd/sssd.log for [sss_ini_call_validators]
           command: >-
@@ -62,6 +84,24 @@
           vars:
             ad_integration_sssd_custom_settings: "{{ update_list }}"
 
+        # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
+        - name: Check custom SSSD settings after removing vars - EL7
+          ini_file:  # noqa fqcn
+            path: "{{ __ad_integration_sssd_conf }}"
+            state: "{{ item.state | default('present') }}"
+            section: domain/{{ ad_integration_realm }}
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+            create: true
+            owner: root
+            group: root
+            mode: u=rw,g=,o=
+          loop: "{{ update_list }}"
+          register: __result
+          failed_when: __result is changed
+          when:
+            - __ad_integration_is_rh_distro_7
+
         - name: Check custom SSSD settings after removing vars
           community.general.ini_file:
             path: "{{ __ad_integration_sssd_conf }}"
@@ -76,6 +116,7 @@
           loop: "{{ update_list }}"
           register: __result
           failed_when: __result is changed
+          when: not __ad_integration_is_rh_distro_7
 
       always:
         - name: Cleanup fake realm

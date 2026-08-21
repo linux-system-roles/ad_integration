@@ -28,6 +28,9 @@
     # will override this value
     ad_integration_realm: dyndns-sample-realm.com
   tasks:
+    - name: Include RH distros variables
+      include_vars: vars/rh_distros_vars.yml
+
     - name: Run test
       block:
         - name: Setup fake realm
@@ -44,6 +47,32 @@
             ad_dyndns_server: 127.0.0.1
             ad_dyndns_auth: GSS-TSIG
             ad_dyndns_update: true
+
+        # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
+        - name: Check custom dyndns settings - EL7
+          ini_file:  # noqa fqcn
+            path: "{{ __ad_integration_sssd_conf }}"
+            state: present
+            section: domain/{{ ad_integration_realm }}
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+            create: true
+            owner: root
+            group: root
+            mode: u=rw,g=,o=
+          loop:
+            - key: dyndns_update
+              value: "True"
+            - key: dyndns_iface
+              value: TESTING
+            - key: dyndns_auth
+              value: GSS-TSIG
+            - key: dyndns_server
+              value: 127.0.0.1
+          register: __result
+          failed_when: __result is changed
+          when:
+            - __ad_integration_is_rh_distro_7
 
         - name: Check custom dyndns settings
           community.general.ini_file:
@@ -67,6 +96,7 @@
               value: 127.0.0.1
           register: __result
           failed_when: __result is changed
+          when: not __ad_integration_is_rh_distro_7
 
         - name: Search /var/log/sssd/sssd.log for [sss_ini_call_validators]
           command: grep -i sss_ini_call_validators /var/log/sssd/sssd.log
@@ -92,6 +122,27 @@
             state: restarted
           when: not __ad_integration_test_sssd_config_only | d(false)
 
+        # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
+        - name: Check custom dyndns settings are removed - EL7
+          ini_file:  # noqa fqcn
+            path: "{{ __ad_integration_sssd_conf }}"
+            state: absent
+            section: domain/{{ ad_integration_realm }}
+            option: "{{ item.key }}"
+            create: true
+            owner: root
+            group: root
+            mode: u=rw,g=,o=
+          loop:
+            - key: dyndns_iface
+              value: null
+            - key: dyndns_server
+              value: null
+          register: __result
+          failed_when: __result is changed
+          when:
+            - __ad_integration_is_rh_distro_7
+
         - name: Check custom dyndns settings are removed
           community.general.ini_file:
             path: "{{ __ad_integration_sssd_conf }}"
@@ -109,6 +160,7 @@
               value: null
           register: __result
           failed_when: __result is changed
+          when: not __ad_integration_is_rh_distro_7
 
         - name: Test - Verify IPv4 DNS records were created
           when: not __ad_integration_test_sssd_config_only | d(false)
