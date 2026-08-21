@@ -32,6 +32,9 @@
       {{ item["key"] }} = {{ item["value"] }}
       {% endfor %}
   tasks:
+    - name: Include RH distros variables
+      include_vars: vars/rh_distros_vars.yml
+
     - name: Run test
       block:
         - name: Create a temp file for sssd.conf
@@ -63,6 +66,21 @@
               __ad_integration_sssd_custom_settings2 + __ad_integration_sssd_custom_settings3 }}"
             ad_integration_sssd_merge_duplicate_sections: true
 
+        # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
+        - name: Check custom SSSD settings - this section should be removed - EL7
+          ini_file:  # noqa fqcn
+            path: "{{ __ad_integration_sssd_conf }}"
+            state: absent
+            section: domain/{{ ad_integration_realm | lower }}
+            create: true
+            owner: root
+            group: root
+            mode: u=rw,g=,o=
+          register: __result
+          failed_when: __result is changed
+          when:
+            - __ad_integration_is_rh_distro_7
+
         - name: Check custom SSSD settings - this section should be removed
           community.general.ini_file:
             path: "{{ __ad_integration_sssd_conf }}"
@@ -74,6 +92,26 @@
             mode: u=rw,g=,o=
           register: __result
           failed_when: __result is changed
+          when: not __ad_integration_is_rh_distro_7
+
+        # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
+        - name: Check custom SSSD settings again - for merged options - EL7
+          ini_file:  # noqa fqcn
+            path: "{{ __ad_integration_sssd_conf }}"
+            state: "{{ item.state | default('present') }}"
+            section: domain/{{ ad_integration_realm }}
+            option: "{{ item.key }}"
+            value: "{{ item.value }}"
+            create: true
+            owner: root
+            group: root
+            mode: u=rw,g=,o=
+          loop: "{{ __ad_integration_sssd_custom_settings +
+            __ad_integration_sssd_custom_settings2 + __ad_integration_sssd_custom_settings3 }}"
+          register: __result
+          failed_when: __result is changed
+          when:
+            - __ad_integration_is_rh_distro_7
 
         - name: Check custom SSSD settings again - for merged options
           community.general.ini_file:
@@ -90,6 +128,7 @@
             __ad_integration_sssd_custom_settings2 + __ad_integration_sssd_custom_settings3 }}"
           register: __result
           failed_when: __result is changed
+          when: not __ad_integration_is_rh_distro_7
 
       always:
         - name: Cleanup fake realm
