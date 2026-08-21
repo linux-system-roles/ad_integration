@@ -185,8 +185,11 @@
         path: "{{ __ad_integration_sssd_conf }}"
       register: __ad_sssd_conf_stat
 
-    # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
-    - name: Remove duplicate sections - EL7
+    # Bare module name (not FQCN): on EL7 (ansible 2.9) the collection is not
+    # installable and an unresolvable FQCN aborts play parsing. The bare name
+    # resolves to the 2.9 builtin on EL7 and redirects to the latest collection
+    # module (community.general.ini_file) on newer systems.
+    - name: Remove duplicate sections
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
         state: absent
@@ -196,21 +199,6 @@
         mode: u=rw,g=,o=
       loop: "{{ __ad_matching_section_names }}"
       when:
-        - __ad_integration_is_rh_distro_7
-        - __ad_sssd_conf_stat.stat.exists
-      notify: Handler for ad_integration to restart services - sssd
-
-    - name: Remove duplicate sections
-      community.general.ini_file:
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: absent
-        section: "{{ item }}"
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
-      loop: "{{ __ad_matching_section_names }}"
-      when:
-        - not __ad_integration_is_rh_distro_7
         - __ad_sssd_conf_stat.stat.exists
       notify: Handler for ad_integration to restart services - sssd
 
@@ -304,26 +292,12 @@
       register: __ad_sssd_conf_content
       when: __ad_sssd_conf_stat.stat.exists
 
-    # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
-    - name: Consolidate options from duplicate sections - EL7
-      ini_file:  # noqa fqcn
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: present
-        section: "{{ __ad_section_to_use }}"
-        option: "{{ item.key }}"
-        value: "{{ item.value }}"
-        create: true
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
-      loop: "{{ (__ad_integration_matching_sections_before | d({})).values() | map('dict2items') | flatten | list }}"
-      notify: Handler for ad_integration to restart services - sssd
-      when:
-        - __ad_integration_is_rh_distro_7
-        - ad_integration_sssd_merge_duplicate_sections | bool
-
+    # Bare module name (not FQCN): on EL7 (ansible 2.9) the collection is not
+    # installable and an unresolvable FQCN aborts play parsing. The bare name
+    # resolves to the 2.9 builtin on EL7 and redirects to the latest collection
+    # module (community.general.ini_file) on newer systems.
     - name: Consolidate options from duplicate sections
-      community.general.ini_file:
+      ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
         state: present
         section: "{{ __ad_section_to_use }}"
@@ -336,28 +310,14 @@
       loop: "{{ (__ad_integration_matching_sections_before | d({})).values() | map('dict2items') | flatten | list }}"
       notify: Handler for ad_integration to restart services - sssd
       when:
-        - not __ad_integration_is_rh_distro_7
         - ad_integration_sssd_merge_duplicate_sections | bool
 
-    # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
-    - name: Configure SSSD settings - EL7
-      ini_file:  # noqa fqcn
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: "{{ item.state | default('present') }}"
-        section: sssd
-        option: "{{ item.key }}"
-        value: "{{ item.value }}"
-        create: true
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
-      loop: "{{ ad_integration_sssd_settings }}"
-      notify: Handler for ad_integration to restart services - sssd
-      when:
-        - __ad_integration_is_rh_distro_7
-
+    # Bare module name (not FQCN): on EL7 (ansible 2.9) the collection is not
+    # installable and an unresolvable FQCN aborts play parsing. The bare name
+    # resolves to the 2.9 builtin on EL7 and redirects to the latest collection
+    # module (community.general.ini_file) on newer systems.
     - name: Configure SSSD settings
-      community.general.ini_file:
+      ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
         state: "{{ item.state | default('present') }}"
         section: sssd
@@ -369,54 +329,13 @@
         mode: u=rw,g=,o=
       loop: "{{ ad_integration_sssd_settings }}"
       notify: Handler for ad_integration to restart services - sssd
-      when:
-        - not __ad_integration_is_rh_distro_7
 
-    # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
-    - name: Configure dynamic DNS updates - EL7
-      ini_file:  # noqa fqcn
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: present
-        section: "{{ __ad_section_to_use }}"
-        option: "{{ item.key }}"
-        value: "{{ item.value }}"
-        create: true
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
-      loop:
-        - key: dyndns_update
-          value: "{{ ad_dyndns_update | string }}"
-        - key: dyndns_ttl
-          value: "{{ ad_dyndns_ttl | int }}"
-        - key: dyndns_iface
-          value: "{{ ad_dyndns_iface | string
-            if ad_dyndns_iface is not none else '' }}"
-        - key: dyndns_refresh_interval
-          value: "{{ ad_dyndns_refresh_interval | int }}"
-        - key: dyndns_update_ptr
-          value: "{{ ad_dyndns_update_ptr | string }}"
-        - key: dyndns_force_tcp
-          value: "{{ ad_dyndns_force_tcp | string }}"
-        - key: dyndns_auth
-          value: "{{ ad_dyndns_auth | string if ad_dyndns_auth else '' }}"
-        - key: dyndns_server
-          value: "{{ ad_dyndns_server | string
-            if ad_dyndns_server is not none else '' }}"
-        # For dynamic dns to work the machine either needs fqdn in hostname
-        # or ad_hostname needs to be defined.
-        - key: ad_hostname
-          value: "{{ ansible_facts['hostname'] + '.' + ad_integration_realm | lower
-            | string if '.' not in ansible_facts['hostname'] else '' }}"
-      when:
-        - __ad_integration_is_rh_distro_7
-        - ad_dyndns_update | bool
-        - item.value is not none
-        - item.value != ''
-      notify: Handler for ad_integration to restart services - sssd
-
+    # Bare module name (not FQCN): on EL7 (ansible 2.9) the collection is not
+    # installable and an unresolvable FQCN aborts play parsing. The bare name
+    # resolves to the 2.9 builtin on EL7 and redirects to the latest collection
+    # module (community.general.ini_file) on newer systems.
     - name: Configure dynamic DNS updates
-      community.general.ini_file:
+      ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
         state: present
         section: "{{ __ad_section_to_use }}"
@@ -451,14 +370,16 @@
           value: "{{ ansible_facts['hostname'] + '.' + ad_integration_realm | lower
             | string if '.' not in ansible_facts['hostname'] else '' }}"
       when:
-        - not __ad_integration_is_rh_distro_7
         - ad_dyndns_update | bool
         - item.value is not none
         - item.value != ''
       notify: Handler for ad_integration to restart services - sssd
 
-    # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
-    - name: Configure custom SSSD settings - EL7
+    # Bare module name (not FQCN): on EL7 (ansible 2.9) the collection is not
+    # installable and an unresolvable FQCN aborts play parsing. The bare name
+    # resolves to the 2.9 builtin on EL7 and redirects to the latest collection
+    # module (community.general.ini_file) on newer systems.
+    - name: Configure custom SSSD settings
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
         state: "{{ item.state | default('present') }}"
@@ -471,30 +392,15 @@
         mode: u=rw,g=,o=
       loop: "{{ ad_integration_sssd_custom_settings }}"
       notify: Handler for ad_integration to restart services - sssd
-      when:
-        - __ad_integration_is_rh_distro_7
-
-    - name: Configure custom SSSD settings
-      community.general.ini_file:
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: "{{ item.state | default('present') }}"
-        section: "{{ __ad_section_to_use }}"
-        option: "{{ item.key }}"
-        value: "{{ item.value }}"
-        create: true
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
-      loop: "{{ ad_integration_sssd_custom_settings }}"
-      notify: Handler for ad_integration to restart services - sssd
-      when:
-        - not __ad_integration_is_rh_distro_7
 
     # If dyndns_iface and/or dyndns_server previously had a configured value but are
     # now being set to `none` or `''`, remove the options form sssd.conf so sssd
     # will determine the default values.
-    # ini_file is a builtin module in ansible 2.9 (EL7); community.general otherwise
-    - name: Cleanup dynamic DNS configuration options - EL7
+    # Bare module name (not FQCN): on EL7 (ansible 2.9) the collection is not
+    # installable and an unresolvable FQCN aborts play parsing. The bare name
+    # resolves to the 2.9 builtin on EL7 and redirects to the latest collection
+    # module (community.general.ini_file) on newer systems.
+    - name: Cleanup dynamic DNS configuration options
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
         state: absent
@@ -509,27 +415,6 @@
         - key: dyndns_server
           value: "{{ '' if ad_dyndns_server is none else ad_dyndns_server }}"
       when:
-        - __ad_integration_is_rh_distro_7
-        - ad_dyndns_update | bool
-        - item.value is none or item.value == ''
-      notify: Handler for ad_integration to restart services - sssd
-
-    - name: Cleanup dynamic DNS configuration options
-      community.general.ini_file:
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: absent
-        section: "{{ __ad_section_to_use }}"
-        option: "{{ item.key }}"
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
-      loop:
-        - key: dyndns_iface
-          value: "{{ '' if ad_dyndns_iface is none else ad_dyndns_iface }}"
-        - key: dyndns_server
-          value: "{{ '' if ad_dyndns_server is none else ad_dyndns_server }}"
-      when:
-        - not __ad_integration_is_rh_distro_7
         - ad_dyndns_update | bool
         - item.value is none or item.value == ''
       notify: Handler for ad_integration to restart services - sssd
