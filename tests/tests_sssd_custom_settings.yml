@@ -25,9 +25,9 @@
           vars:
             __sr_public: true
 
-        # Bare module name (not FQCN): on EL7 (ansible 2.9) the collection is not
+        # Bare module name (not FQCN): on ansible 2.9 the collection is not
         # installable and an unresolvable FQCN aborts play parsing. The bare name
-        # resolves to the 2.9 builtin on EL7 and redirects to the latest
+        # resolves to the ansible 2.9 builtin and redirects to the latest
         # collection module (community.general.ini_file) on newer systems.
         - name: Check custom SSSD settings
           ini_file:  # noqa fqcn
@@ -66,9 +66,9 @@
           vars:
             ad_integration_sssd_custom_settings: "{{ update_list }}"
 
-        # Bare module name (not FQCN): on EL7 (ansible 2.9) the collection is not
+        # Bare module name (not FQCN): on ansible 2.9 the collection is not
         # installable and an unresolvable FQCN aborts play parsing. The bare name
-        # resolves to the 2.9 builtin on EL7 and redirects to the latest
+        # resolves to the ansible 2.9 builtin and redirects to the latest
         # collection module (community.general.ini_file) on newer systems.
         - name: Check custom SSSD settings after removing vars
           ini_file:  # noqa fqcn
