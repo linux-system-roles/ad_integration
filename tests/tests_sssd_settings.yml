@@ -72,10 +72,29 @@
               - __begin_date in __file_content
               - __success_date in __file_content
 
+    # ansible 2.9 (ansible-engine) uses the vendored ini_file_ansible_29 module,
+    # since community.general cannot be installed there; other systems use the
+    # bare ini_file name, which redirects to the latest community.general.ini_file.
+    - name: Check SSSD settings - ansible 2.9
+      ini_file_ansible_29:
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: "{{ item.state | default('present') }}"
+        section: sssd
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ ad_integration_sssd_settings }}"
+      register: __result
+      failed_when: __result is changed
+      when: ansible_version.full is version('2.10', '<')
+
     # Bare module name (not FQCN): on ansible 2.9 the collection is not
-    # installable and an unresolvable FQCN aborts play parsing. The bare name
-    # resolves to the ansible 2.9 builtin and redirects to the latest collection
-    # module (community.general.ini_file) on newer systems.
+    # installable and an unresolvable FQCN aborts play parsing even for a task
+    # skipped by "when". The bare name resolves to the ansible 2.9 builtin
+    # (skipped here) and redirects to the latest collection module elsewhere.
     - name: Check SSSD settings
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
@@ -90,6 +109,7 @@
       loop: "{{ ad_integration_sssd_settings }}"
       register: __result
       failed_when: __result is changed
+      when: ansible_version.full is version('2.10', '>=')
 
     - name: Search /var/log/sssd/sssd.log for [sss_ini_call_validators]
       command: >-
@@ -113,10 +133,29 @@
       vars:
         ad_integration_sssd_settings: "{{ update_list }}"
 
+    # ansible 2.9 (ansible-engine) uses the vendored ini_file_ansible_29 module,
+    # since community.general cannot be installed there; other systems use the
+    # bare ini_file name, which redirects to the latest community.general.ini_file.
+    - name: Check custom SSSD settings - ansible 2.9
+      ini_file_ansible_29:
+        path: "{{ __ad_integration_sssd_conf }}"
+        state: "{{ item.state | default('present') }}"
+        section: sssd
+        option: "{{ item.key }}"
+        value: "{{ item.value }}"
+        create: true
+        owner: root
+        group: root
+        mode: u=rw,g=,o=
+      loop: "{{ update_list }}"
+      register: __result
+      failed_when: __result is changed
+      when: ansible_version.full is version('2.10', '<')
+
     # Bare module name (not FQCN): on ansible 2.9 the collection is not
-    # installable and an unresolvable FQCN aborts play parsing. The bare name
-    # resolves to the ansible 2.9 builtin and redirects to the latest collection
-    # module (community.general.ini_file) on newer systems.
+    # installable and an unresolvable FQCN aborts play parsing even for a task
+    # skipped by "when". The bare name resolves to the ansible 2.9 builtin
+    # (skipped here) and redirects to the latest collection module elsewhere.
     - name: Check custom SSSD settings
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
@@ -131,3 +170,4 @@
       loop: "{{ update_list }}"
       register: __result
       failed_when: __result is changed
+      when: ansible_version.full is version('2.10', '>=')
