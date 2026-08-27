@@ -148,6 +148,8 @@ notes:
 author:
   - Jan-Piet Mens (@jpmens)
   - Ales Nosek (@noseka1)
+extends_documentation_fragment:
+  - ansible.builtin.files
 """
 
 EXAMPLES = r"""
