@@ -202,10 +202,10 @@
         - __ad_sssd_conf_stat.stat.exists
       notify: Handler for ad_integration to restart services - sssd
 
-    # Bare module name (not FQCN): on ansible 2.9 an unresolvable FQCN aborts
-    # play parsing even for a task skipped by "when". The bare name resolves to
-    # the ansible 2.9 builtin and redirects to the latest collection module
-    # elsewhere. Used on managed nodes with python >= 3.7.
+    # Bare module name (not FQCN): an unresolvable FQCN aborts play parsing on
+    # ansible 2.9 even for a task skipped by "when", so the bare name is used.
+    # This runs only on managed nodes with python >= 3.7, where the bare name
+    # resolves to the latest collection module.
     - name: Remove duplicate sections
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
@@ -330,10 +330,10 @@
         - not (ansible_facts['python_version'] is version('3.7', '>='))
         - ad_integration_sssd_merge_duplicate_sections | bool
 
-    # Bare module name (not FQCN): on ansible 2.9 an unresolvable FQCN aborts
-    # play parsing even for a task skipped by "when". The bare name resolves to
-    # the ansible 2.9 builtin and redirects to the latest collection module
-    # elsewhere. Used on managed nodes with python >= 3.7.
+    # Bare module name (not FQCN): an unresolvable FQCN aborts play parsing on
+    # ansible 2.9 even for a task skipped by "when", so the bare name is used.
+    # This runs only on managed nodes with python >= 3.7, where the bare name
+    # resolves to the latest collection module.
     - name: Consolidate options from duplicate sections
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
@@ -370,10 +370,10 @@
       when:
         - not (ansible_facts['python_version'] is version('3.7', '>='))
 
-    # Bare module name (not FQCN): on ansible 2.9 an unresolvable FQCN aborts
-    # play parsing even for a task skipped by "when". The bare name resolves to
-    # the ansible 2.9 builtin and redirects to the latest collection module
-    # elsewhere. Used on managed nodes with python >= 3.7.
+    # Bare module name (not FQCN): an unresolvable FQCN aborts play parsing on
+    # ansible 2.9 even for a task skipped by "when", so the bare name is used.
+    # This runs only on managed nodes with python >= 3.7, where the bare name
+    # resolves to the latest collection module.
     - name: Configure SSSD settings
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
@@ -435,10 +435,10 @@
         - item.value != ''
       notify: Handler for ad_integration to restart services - sssd
 
-    # Bare module name (not FQCN): on ansible 2.9 an unresolvable FQCN aborts
-    # play parsing even for a task skipped by "when". The bare name resolves to
-    # the ansible 2.9 builtin and redirects to the latest collection module
-    # elsewhere. Used on managed nodes with python >= 3.7.
+    # Bare module name (not FQCN): an unresolvable FQCN aborts play parsing on
+    # ansible 2.9 even for a task skipped by "when", so the bare name is used.
+    # This runs only on managed nodes with python >= 3.7, where the bare name
+    # resolves to the latest collection module.
     - name: Configure dynamic DNS updates
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
@@ -500,10 +500,10 @@
       when:
         - not (ansible_facts['python_version'] is version('3.7', '>='))
 
-    # Bare module name (not FQCN): on ansible 2.9 an unresolvable FQCN aborts
-    # play parsing even for a task skipped by "when". The bare name resolves to
-    # the ansible 2.9 builtin and redirects to the latest collection module
-    # elsewhere. Used on managed nodes with python >= 3.7.
+    # Bare module name (not FQCN): an unresolvable FQCN aborts play parsing on
+    # ansible 2.9 even for a task skipped by "when", so the bare name is used.
+    # This runs only on managed nodes with python >= 3.7, where the bare name
+    # resolves to the latest collection module.
     - name: Configure custom SSSD settings
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
@@ -546,10 +546,10 @@
         - item.value is none or item.value == ''
       notify: Handler for ad_integration to restart services - sssd
 
-    # Bare module name (not FQCN): on ansible 2.9 an unresolvable FQCN aborts
-    # play parsing even for a task skipped by "when". The bare name resolves to
-    # the ansible 2.9 builtin and redirects to the latest collection module
-    # elsewhere. Used on managed nodes with python >= 3.7.
+    # Bare module name (not FQCN): an unresolvable FQCN aborts play parsing on
+    # ansible 2.9 even for a task skipped by "when", so the bare name is used.
+    # This runs only on managed nodes with python >= 3.7, where the bare name
+    # resolves to the latest collection module.
     - name: Cleanup dynamic DNS configuration options
       ini_file:  # noqa fqcn
         path: "{{ __ad_integration_sssd_conf }}"
