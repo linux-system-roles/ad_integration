@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: MIT
+---
+# Test helper reached from the tests via include_role with tasks_from: it runs
+# the ini_file operation with the args in __test_ini_file_args and asserts the
+# run reports no change (idempotency). include_role is dynamic, so the
+# community.general FQCN is only parsed at runtime and cannot abort play parsing
+# on ansible 2.9. The loop, when any, is handled by the parent include_role task.
+
+# On managed nodes with python < 3.7, the latest community.general.ini_file
+# fails to import ("from __future__ import annotations" requires python >=
+# 3.7), so use the dependency-free vendored ini_file_python_36 module.
+- name: Check ini_file setting - python 3.6
+  ini_file_python_36: "{{ __test_ini_file_args }}"  # noqa args[module]
+  register: __result
+  failed_when: __result is changed
+  when:
+    - not (ansible_facts['python_version'] is version('3.7', '>='))
+
+# On managed nodes with python >= 3.7, use community.general.ini_file.
+# noqa risky-file-permissions: mode is supplied via __test_ini_file_args but
+# ansible-lint cannot see it when the args are passed as a single dict.
+- name: Check ini_file setting
+  community.general.ini_file: "{{ __test_ini_file_args }}"  # noqa args[module] risky-file-permissions
+  register: __result
+  failed_when: __result is changed
+  when:
+    - ansible_facts['python_version'] is version('3.7', '>=')
