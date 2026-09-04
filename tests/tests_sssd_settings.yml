@@ -72,44 +72,25 @@
               - __begin_date in __file_content
               - __success_date in __file_content
 
-    # On managed nodes with python < 3.7, the latest community.general.ini_file
-    # fails to import ("from __future__ import annotations" requires python >=
-    # 3.7), so use the dependency-free vendored ini_file_python_36 module.
-    - name: Check SSSD settings - python 3.6
-      ini_file_python_36:
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: "{{ item.state | default('present') }}"
-        section: sssd
-        option: "{{ item.key }}"
-        value: "{{ item.value }}"
-        create: true
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
-      loop: "{{ ad_integration_sssd_settings }}"
-      register: __result
-      failed_when: __result is changed
-      when: not (ansible_facts['python_version'] is version('3.7', '>='))
-
-    # Bare module name (not FQCN): on ansible 2.9 an unresolvable FQCN aborts
-    # play parsing even for a task skipped by "when". The bare name resolves to
-    # the ansible 2.9 builtin and redirects to the latest collection module
-    # elsewhere. Used on managed nodes with python >= 3.7.
+    # Reuse the include_check_ini_file.yml helper, which runs the vendored
+    # (python < 3.7) or community.general (python >= 3.7) ini_file module and
+    # asserts the run reports no change. The loop is handled here.
     - name: Check SSSD settings
-      ini_file:  # noqa fqcn
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: "{{ item.state | default('present') }}"
-        section: sssd
-        option: "{{ item.key }}"
-        value: "{{ item.value }}"
-        create: true
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
+      include_role:
+        name: linux-system-roles.ad_integration
+        tasks_from: include_check_ini_file.yml
+      vars:
+        __test_ini_file_args:
+          path: "{{ __ad_integration_sssd_conf }}"
+          state: "{{ item.state | default('present') }}"
+          section: sssd
+          option: "{{ item.key }}"
+          value: "{{ item.value }}"
+          create: true
+          owner: root
+          group: root
+          mode: u=rw,g=,o=
       loop: "{{ ad_integration_sssd_settings }}"
-      register: __result
-      failed_when: __result is changed
-      when: ansible_facts['python_version'] is version('3.7', '>=')
 
     - name: Search /var/log/sssd/sssd.log for [sss_ini_call_validators]
       command: >-
@@ -133,41 +114,22 @@
       vars:
         ad_integration_sssd_settings: "{{ update_list }}"
 
-    # On managed nodes with python < 3.7, the latest community.general.ini_file
-    # fails to import ("from __future__ import annotations" requires python >=
-    # 3.7), so use the dependency-free vendored ini_file_python_36 module.
-    - name: Check custom SSSD settings - python 3.6
-      ini_file_python_36:
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: "{{ item.state | default('present') }}"
-        section: sssd
-        option: "{{ item.key }}"
-        value: "{{ item.value }}"
-        create: true
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
-      loop: "{{ update_list }}"
-      register: __result
-      failed_when: __result is changed
-      when: not (ansible_facts['python_version'] is version('3.7', '>='))
-
-    # Bare module name (not FQCN): on ansible 2.9 an unresolvable FQCN aborts
-    # play parsing even for a task skipped by "when". The bare name resolves to
-    # the ansible 2.9 builtin and redirects to the latest collection module
-    # elsewhere. Used on managed nodes with python >= 3.7.
+    # Reuse the include_check_ini_file.yml helper, which runs the vendored
+    # (python < 3.7) or community.general (python >= 3.7) ini_file module and
+    # asserts the run reports no change. The loop is handled here.
     - name: Check custom SSSD settings
-      ini_file:  # noqa fqcn
-        path: "{{ __ad_integration_sssd_conf }}"
-        state: "{{ item.state | default('present') }}"
-        section: sssd
-        option: "{{ item.key }}"
-        value: "{{ item.value }}"
-        create: true
-        owner: root
-        group: root
-        mode: u=rw,g=,o=
+      include_role:
+        name: linux-system-roles.ad_integration
+        tasks_from: include_check_ini_file.yml
+      vars:
+        __test_ini_file_args:
+          path: "{{ __ad_integration_sssd_conf }}"
+          state: "{{ item.state | default('present') }}"
+          section: sssd
+          option: "{{ item.key }}"
+          value: "{{ item.value }}"
+          create: true
+          owner: root
+          group: root
+          mode: u=rw,g=,o=
       loop: "{{ update_list }}"
-      register: __result
-      failed_when: __result is changed
-      when: ansible_facts['python_version'] is version('3.7', '>=')
