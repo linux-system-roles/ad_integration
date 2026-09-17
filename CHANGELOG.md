@@ -1,6 +1,29 @@
 Changelog
 =========
 
+[1.9.1] - 2026-09-17
+--------------------
+
+### Bug Fixes
+
+- fix: Use the bare ini_file module so it works on ansible 2.9 and newer (#213)
+- fix: Select ini_file module by managed node python version (#215)
+- fix: Move ini_file calls to a shared include task file (#223)
+
+### Other Changes
+
+- ci: use commit hash for github action, add persist-credentials false [citest_skip] (#210)
+- ci: refactor build_docs so that pandoc runs in isolated read-only job [citest_skip] (#211)
+- ci: use exact match for systemroller instead of contains [citest_skip] (#212)
+- ci(build_docs): fix pandoc container syntax [citest_skip] (#214)
+- ci: [citest_skip] Bump myrotvorets/set-commit-status-action from 2774e1f040c82ed70a76b4b5cd53bb11ffaedd0a to c0f880c99d91381c6fdb97726f03feb8004409b4 (#216)
+- ci: [citest_skip] Bump actions/download-artifact from 7.0.0 to 8.0.1 (#217)
+- ci: [citest_skip] Bump codespell-project/actions-codespell from 2.1 to 2.2 (#218)
+- refactor: Relax collection constraints, gate vendored modules by python version, update ci versions [citest_skip] (#219)
+- ci: do not run ci tests by default, require citest comment or label [citest_skip] (#220)
+- ci: replace weekly_ci with periodic_ci, stagger schedules [citest_skip] (#221)
+- ci: update status when action triggered by issue comment (#222)
+
 [1.9.0] - 2026-08-06
 --------------------
 
