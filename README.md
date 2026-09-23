@@ -254,6 +254,30 @@ ad_integration_sssd_custom_settings:
 [ad_integration_sssd_merge_duplicate_sections](#ad_integration_sssd_merge_duplicate_sections) for information about how the
 role writes these settings to the sssd.conf file.
 
+#### ad_integration_validate_sssd_config
+
+This is a boolean, default is `true`. If `true` and
+`ad_integration_client_software` is `sssd`, run `sssctl config-check` after
+configuration changes and immediately before any role-triggered SSSD restart.
+An invalid configuration fails the role and prevents that restart, including
+when forced handlers are enabled. Validation does not roll back configuration
+changes and does not report a change itself. It also runs when no settings
+changed, but is skipped in Ansible check mode.
+
+The role installs `sssd-tools` when validation is enabled and
+`ad_integration_manage_packages` is `true`. Otherwise, install `sssd-tools`
+before running the role. Validation fails if `sssctl` is unavailable.
+
+To disable validation when invoking the role:
+
+```yaml
+- name: Join AD without SSSD configuration validation
+  include_role:
+    name: linux-system-roles.ad_integration
+  vars:
+    ad_integration_validate_sssd_config: false
+```
+
 #### ad_integration_preserve_authselect_profile
 
 This is a boolean, default is `false`.  If `true`, configure realmd.conf to

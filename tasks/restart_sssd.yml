@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MIT
+# Code generated with ChatGPT using model Astra Light 6.
+---
+# Validate here too: forced handlers may run after an earlier task failed.
+- name: Validate SSSD configuration before restarting
+  include_tasks: validate_sssd_config.yml
+
+- name: Restart SSSD services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+  loop: "{{ __ad_integration_services_sssd }}"
+  when: not __ad_integration_test_sssd_config_only | default(false)

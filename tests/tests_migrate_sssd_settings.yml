@@ -3,6 +3,8 @@
 - name: Ensure that the role migrates sssd domain settings depending on case
   hosts: all,!ad
   vars:
+    # This test uses a fake realm or incomplete SSSD configuration.
+    ad_integration_validate_sssd_config: false
     ad_integration_realm: MIGRATE.REALM.COM
     __ad_integration_test_sssd_config_only: true
     __ad_integration_sssd_custom_settings:

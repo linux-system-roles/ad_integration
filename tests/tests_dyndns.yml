@@ -20,6 +20,7 @@
 - name: Ensure that the role configures dynamic dns
   hosts: all,!ad
   vars:
+    ad_integration_validate_sssd_config: "{{ not __ad_integration_test_sssd_config_only | bool }}"
     # if we don't have a real AD server, just verify the config
     # file is written properly
     __ad_integration_test_sssd_config_only: "{{

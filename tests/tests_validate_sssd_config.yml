@@ -1,0 +1,128 @@
+# SPDX-License-Identifier: MIT
+# Code generated with ChatGPT using model Astra Light 6.
+---
+- name: Test optional SSSD configuration validation
+  hosts: all,!ad
+  tasks:
+    # Direct task entry points need the same platform setup as the full role.
+    - name: Initialize role platform variables
+      include_role:
+        name: linux-system-roles.ad_integration
+        tasks_from: set_vars.yml
+        public: true
+
+    - name: Create validation test directory
+      tempfile:
+        state: directory
+        prefix: ad_validation_
+      register: __validation_tmp
+
+    - name: Test validation
+      block:
+        - name: Create fake sssctl
+          copy:
+            dest: "{{ __validation_tmp.path }}/sssctl"
+            mode: "0755"
+            content: |
+              #!/bin/sh
+              test "$1" = config-check || exit 99
+              touch "{{ __validation_tmp.path }}/called"
+              exit "${SSSD_TEST_RC:-0}"
+
+        - name: Verify validation can be disabled
+          include_role:
+            name: linux-system-roles.ad_integration
+            tasks_from: validate_sssd_config.yml
+            apply:
+              environment:
+                PATH: "{{ __validation_tmp.path }}:{{ ansible_facts.env.PATH }}"
+          vars:
+            ad_integration_validate_sssd_config: false
+
+        - name: Check whether validation ran
+          stat:
+            path: "{{ __validation_tmp.path }}/called"
+          register: __validation_called
+
+        - name: Assert disabled validation is skipped
+          assert:
+            that: not __validation_called.stat.exists
+
+        - name: Verify check mode skips validation
+          include_role:
+            name: linux-system-roles.ad_integration
+            tasks_from: validate_sssd_config.yml
+            apply:
+              environment:
+                PATH: "{{ __validation_tmp.path }}:{{ ansible_facts.env.PATH }}"
+              check_mode: true
+          vars:
+            ad_integration_validate_sssd_config: true
+
+        - name: Verify winbind skips validation
+          include_role:
+            name: linux-system-roles.ad_integration
+            tasks_from: validate_sssd_config.yml
+            apply:
+              environment:
+                PATH: "{{ __validation_tmp.path }}:{{ ansible_facts.env.PATH }}"
+          vars:
+            ad_integration_validate_sssd_config: true
+            ad_integration_client_software: winbind
+
+        - name: Check whether skipped validation ran
+          stat:
+            path: "{{ __validation_tmp.path }}/called"
+          register: __validation_called
+
+        - name: Assert check mode and winbind skip validation
+          assert:
+            that: not __validation_called.stat.exists
+
+        - name: Verify validation is enabled by default
+          include_role:
+            name: linux-system-roles.ad_integration
+            tasks_from: validate_sssd_config.yml
+            apply:
+              environment:
+                PATH: "{{ __validation_tmp.path }}:{{ ansible_facts.env.PATH }}"
+
+        - name: Check whether enabled validation ran
+          stat:
+            path: "{{ __validation_tmp.path }}/called"
+          register: __validation_called
+
+        - name: Assert enabled validation ran
+          assert:
+            that: __validation_called.stat.exists
+
+        - name: Verify invalid configuration prevents restart
+          block:
+            - name: Run restart tasks with invalid configuration
+              include_role:
+                name: linux-system-roles.ad_integration
+                tasks_from: restart_sssd.yml
+                apply:
+                  environment:
+                    PATH: "{{ __validation_tmp.path }}:{{ ansible_facts.env.PATH }}"
+                    SSSD_TEST_RC: "1"
+              vars:
+                ad_integration_validate_sssd_config: true
+                __ad_integration_services_sssd: [ad_validation_nonexistent_service]
+
+            - name: Fail if invalid configuration was accepted
+              fail:
+                msg: Invalid SSSD configuration was accepted
+
+          rescue:
+            - name: Assert validation failed before attempting a restart
+              assert:
+                that:
+                  - ansible_failed_task.name == 'Check SSSD configuration'
+                  - ansible_failed_result.rc == 1
+
+      always:
+        - name: Remove validation test directory
+          file:
+            path: "{{ __validation_tmp.path }}"
+            state: absent

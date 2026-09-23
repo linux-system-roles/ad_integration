@@ -43,5 +43,6 @@
         name: caller
       vars:
         ad_integration_realm: "{{ __ad_integration_sample_realm }}"
+        ad_integration_validate_sssd_config: false
         ad_integration_password: Secret123
         roletoinclude: linux-system-roles.ad_integration

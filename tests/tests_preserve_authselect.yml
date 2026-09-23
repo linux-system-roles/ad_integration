@@ -3,6 +3,8 @@
 - name: Ensure that the role ad_integration_preserve_authselect_profile works
   hosts: all,!ad
   vars:
+    # This test uses a fake realm or incomplete SSSD configuration.
+    ad_integration_validate_sssd_config: false
     # sample realm that will skip joining realm step
     ad_integration_realm: "{{ __ad_integration_sample_realm }}"
     ad_integration_password: Secret123

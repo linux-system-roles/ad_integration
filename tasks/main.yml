@@ -398,6 +398,9 @@
         - ad_dyndns_update | bool
         - item.value is none or item.value == ''
 
+- name: Validate final SSSD configuration
+  include_tasks: validate_sssd_config.yml
+
 - name: Record role success fingerprint
   sr_fingerprint:
     status: success

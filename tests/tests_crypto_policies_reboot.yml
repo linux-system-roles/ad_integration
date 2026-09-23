@@ -5,6 +5,8 @@
   tags:
     - tests::reboot
   vars:
+    # This test uses a fake realm or incomplete SSSD configuration.
+    ad_integration_validate_sssd_config: false
     ad_integration_realm: sample-realm.com
     ad_integration_allow_rc4_crypto: true
   tasks:

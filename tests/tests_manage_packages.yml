@@ -3,6 +3,8 @@
 - name: Ensure ad_integration_manage_packages works
   hosts: all,!ad
   vars:
+    # This test uses a fake realm or incomplete SSSD configuration.
+    ad_integration_validate_sssd_config: false
     ad_integration_realm: sample-realm.com
     __test_packages:
       - realmd
