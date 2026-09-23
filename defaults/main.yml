@@ -159,3 +159,6 @@ ad_integration_sssd_merge_duplicate_sections: false
 # If true, suppress potentially sensitive output from tasks that
 # handle credentials, secrets, and other sensitive data.
 ad_integration_secure_logging: true
+
+# Validate SSSD configuration after edits and before restarting SSSD.
+ad_integration_validate_sssd_config: true

@@ -8,8 +8,4 @@
   when: not __ad_integration_test_sssd_config_only | default(false)
 
 - name: Handler for ad_integration to restart services - sssd
-  ansible.builtin.service:
-    name: "{{ item }}"
-    state: restarted
-  loop: "{{ __ad_integration_services_sssd }}"
-  when: not __ad_integration_test_sssd_config_only | default(false)
+  include_tasks: "{{ role_path }}/tasks/restart_sssd.yml"

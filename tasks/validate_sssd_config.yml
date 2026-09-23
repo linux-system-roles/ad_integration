@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: MIT
+# Code generated with ChatGPT using model Astra Light 6.
+---
+- name: Ensure SSSD configuration validation tools are installed
+  package:
+    name: sssd-tools
+    state: present
+    use: "{{ (__ad_integration_is_ostree | d(false)) |
+      ternary('ansible.posix.rhel_rpm_ostree', omit) }}"
+  when:
+    - ad_integration_manage_packages | bool
+    - ad_integration_validate_sssd_config | bool
+    - ad_integration_client_software == 'sssd'
+
+- name: Check SSSD configuration
+  command: sssctl config-check
+  changed_when: false
+  when:
+    - ad_integration_validate_sssd_config | bool
+    - ad_integration_client_software == 'sssd'
+    - not ansible_check_mode

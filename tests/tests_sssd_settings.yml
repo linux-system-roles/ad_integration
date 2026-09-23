@@ -4,6 +4,8 @@
 - name: Ensure that the role configures dynamic dns
   hosts: all,!ad
   vars:
+    # This test uses a fake realm or incomplete SSSD configuration.
+    ad_integration_validate_sssd_config: false
     ad_integration_realm: sample-realm.com
     __ad_integration_test_sssd_config_only: true
     ad_integration_sssd_settings:
