@@ -208,6 +208,8 @@ id="toc-ad_integration_join_parameters">ad_integration_join_parameters</a></li>
 id="toc-ad_integration_sssd_settings">ad_integration_sssd_settings</a></li>
 <li><a href="#ad_integration_sssd_custom_settings"
 id="toc-ad_integration_sssd_custom_settings">ad_integration_sssd_custom_settings</a></li>
+<li><a href="#ad_integration_validate_sssd_config"
+id="toc-ad_integration_validate_sssd_config">ad_integration_validate_sssd_config</a></li>
 <li><a href="#ad_integration_preserve_authselect_profile"
 id="toc-ad_integration_preserve_authselect_profile">ad_integration_preserve_authselect_profile</a></li>
 <li><a href="#ad_integration_manage_packages"
@@ -531,6 +533,27 @@ href="#ad_integration_sssd_merge_duplicate_sections">ad_integration_sssd_merge_d
 for information about how the role writes these settings to the
 sssd.conf file.</p>
 <h3
+id="ad_integration_validate_sssd_config">ad_integration_validate_sssd_config</h3>
+<p>This is a boolean, default is <code>true</code>. If <code>true</code>
+and <code>ad_integration_client_software</code> is <code>sssd</code>,
+run <code>sssctl config-check</code> after configuration changes and
+immediately before any role-triggered SSSD restart. An invalid
+configuration fails the role and prevents that restart, including when
+forced handlers are enabled. Validation does not roll back configuration
+changes and does not report a change itself. It also runs when no
+settings changed, but is skipped in Ansible check mode.</p>
+<p>The role installs <code>sssd-tools</code> when validation is enabled
+and <code>ad_integration_manage_packages</code> is <code>true</code>.
+Otherwise, install <code>sssd-tools</code> before running the role.
+Validation fails if <code>sssctl</code> is unavailable.</p>
+<p>To disable validation when invoking the role:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Join AD without SSSD configuration validation</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">include_role</span><span class="kw">:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> linux-system-roles.ad_integration</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_validate_sssd_config</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span></code></pre></div>
+<h3
 id="ad_integration_preserve_authselect_profile">ad_integration_preserve_authselect_profile</h3>
 <p>This is a boolean, default is <code>false</code>. If
 <code>true</code>, configure realmd.conf to remove the
@@ -559,10 +582,10 @@ consolidate these sections into one, use
 example, if you have a sssd.conf with both
 <code>[domain/example.com]</code> and <code>[domain/EXAMPLE.COM]</code>,
 and you want to use only the latter, then use:</p>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> EXAMPLE.COM</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_merge_duplicate_sections</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_custom_settings</span><span class="kw">:</span><span class="at"> somesettings</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> EXAMPLE.COM</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_merge_duplicate_sections</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_custom_settings</span><span class="kw">:</span><span class="at"> somesettings</span></span></code></pre></div>
 <p>All of the settings from <code>[domain/example.com]</code> will be
 moved to <code>[domain/EXAMPLE.COM]</code>, and the section
 <code>[domain/example.com]</code> will be removed from sssd.conf.</p>
@@ -586,15 +609,15 @@ integration with AD domain <code>domain.example.com</code>, the join
 will be performed with user Administrator using the vault stored
 password. Prior to the join, the crypto policy for AD SUPPORT with RC4
 encryption allowed will be set.</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;domain.example.com&quot;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> !vault | …vault encrypted password…</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_manage_crypto_policies</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_allow_rc4_crypto</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">roles</span><span class="kw">:</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> linux-system-roles.ad_integration</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;domain.example.com&quot;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> !vault | …vault encrypted password…</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_manage_crypto_policies</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_allow_rc4_crypto</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">roles</span><span class="kw">:</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> linux-system-roles.ad_integration</span></span></code></pre></div>
 <h1 id="rpm-ostree">rpm-ostree</h1>
 <p>See README-ostree.md</p>
 <h1 id="license">License</h1>
