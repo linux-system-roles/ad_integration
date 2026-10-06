@@ -1,0 +1,573 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Verify invalid parameters are rejected
+  hosts: all,!ad
+  vars:
+    # Fake realm used by other tests that do not join a real AD domain.
+    ad_integration_realm: sample-realm.com
+    ad_integration_validate_sssd_config: false
+  tasks:
+    - name: Run invalid input tests
+      block:
+        # ====================================================
+        # Section 1: Verify role works with valid defaults
+        # ====================================================
+        - name: Run role with valid defaults
+          ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+
+        - name: Mark valid defaults succeeded
+          ansible.builtin.set_fact:
+            __valid_defaults_succeeded: true
+
+        - name: Assert role completed with valid defaults
+          ansible.builtin.assert:
+            that:
+              - __valid_defaults_succeeded | default(false)
+            fail_msg: >-
+              Role should succeed with default parameters when
+              ad_integration_realm is provided
+
+        # ====================================================
+        # Section 2: argument_specs validation (Ansible 2.11+)
+        # ====================================================
+        - name: Run argument specs validation tests
+          when: ansible_version.full is version("2.11", ">=")
+          block:
+            # --- Test: required nested field missing ---
+            - name: Argument specs reject missing key in sssd_settings
+              block:
+                - name: Run role without required sssd_settings key
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_integration_sssd_settings:
+                      - value: 5
+              rescue:
+                - name: Mark missing sssd_settings key rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_missing_sssd_key_failed: true
+                  when: >-
+                    'missing required arguments' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert missing sssd_settings key was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_missing_sssd_key_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject
+                  ad_integration_sssd_settings entries missing the
+                  required key field
+
+            - name: Argument specs reject missing key in sssd_custom_settings
+              block:
+                - name: Run role without required sssd_custom_settings key
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_integration_sssd_custom_settings:
+                      - value: ad
+              rescue:
+                - name: Mark missing sssd_custom_settings key rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_missing_sssd_custom_key_failed: true
+                  when: >-
+                    'missing required arguments' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert missing sssd_custom_settings key was rejected
+              ansible.builtin.assert:
+                that:
+                  - >-
+                    __invalid_input_missing_sssd_custom_key_failed
+                    | default(false)
+                fail_msg: >-
+                  argument_specs should reject
+                  ad_integration_sssd_custom_settings entries missing
+                  the required key field
+
+            # --- Test: invalid types ---
+            - name: Argument specs reject non-boolean ad_integration_force_rejoin
+              block:
+                - name: Run role with non-boolean ad_integration_force_rejoin
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_integration_force_rejoin: not_a_bool
+              rescue:
+                - name: Mark invalid ad_integration_force_rejoin type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_force_rejoin_type_failed: true
+                  when: >-
+                    'ad_integration_force_rejoin' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid ad_integration_force_rejoin type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_force_rejoin_type_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject
+                  ad_integration_force_rejoin values that are not
+                  booleans
+
+            - name: Argument specs reject non-boolean ad_dyndns_update
+              block:
+                - name: Run role with non-boolean ad_dyndns_update
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_dyndns_update: not_a_bool
+              rescue:
+                - name: Mark invalid ad_dyndns_update type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_dyndns_update_type_failed: true
+                  when: >-
+                    'ad_dyndns_update' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid ad_dyndns_update type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_dyndns_update_type_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject ad_dyndns_update values
+                  that are not booleans
+
+            - name: Argument specs reject non-boolean ad_integration_manage_packages
+              block:
+                - name: Run role with non-boolean ad_integration_manage_packages
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_integration_manage_packages: not_a_bool
+              rescue:
+                - name: Mark invalid ad_integration_manage_packages type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_manage_packages_type_failed: true
+                  when: >-
+                    'ad_integration_manage_packages' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid ad_integration_manage_packages type was rejected
+              ansible.builtin.assert:
+                that:
+                  - >-
+                    __invalid_input_manage_packages_type_failed
+                    | default(false)
+                fail_msg: >-
+                  argument_specs should reject
+                  ad_integration_manage_packages values that are not
+                  booleans
+
+            - name: Argument specs reject non-integer ad_dyndns_ttl
+              block:
+                - name: Run role with non-integer ad_dyndns_ttl
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_dyndns_ttl: not_an_int
+              rescue:
+                - name: Mark invalid ad_dyndns_ttl type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_dyndns_ttl_type_failed: true
+                  when: >-
+                    'ad_dyndns_ttl' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid ad_dyndns_ttl type was rejected
+              ansible.builtin.assert:
+                that:
+                  - __invalid_input_dyndns_ttl_type_failed | default(false)
+                fail_msg: >-
+                  argument_specs should reject ad_dyndns_ttl values
+                  that are not integers
+
+            - name: Argument specs reject non-integer ad_dyndns_refresh_interval
+              block:
+                - name: Run role with non-integer ad_dyndns_refresh_interval
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_dyndns_refresh_interval: not_an_int
+              rescue:
+                - name: Mark invalid ad_dyndns_refresh_interval type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_dyndns_refresh_type_failed: true
+                  when: >-
+                    'ad_dyndns_refresh_interval' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid ad_dyndns_refresh_interval type was rejected
+              ansible.builtin.assert:
+                that:
+                  - >-
+                    __invalid_input_dyndns_refresh_type_failed
+                    | default(false)
+                fail_msg: >-
+                  argument_specs should reject
+                  ad_dyndns_refresh_interval values that are not
+                  integers
+
+            - name: Argument specs reject non-list ad_integration_sssd_settings
+              block:
+                - name: Run role with non-list ad_integration_sssd_settings
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_integration_sssd_settings: not_a_list
+              rescue:
+                - name: Mark invalid ad_integration_sssd_settings type rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_sssd_settings_type_failed: true
+                  when: >-
+                    'ad_integration_sssd_settings' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid ad_integration_sssd_settings type was rejected
+              ansible.builtin.assert:
+                that:
+                  - >-
+                    __invalid_input_sssd_settings_type_failed
+                    | default(false)
+                fail_msg: >-
+                  argument_specs should reject
+                  ad_integration_sssd_settings values that are not
+                  lists
+
+            # --- Test: invalid choices ---
+            - name: Argument specs reject invalid client_software choice
+              block:
+                - name: Run role with invalid ad_integration_client_software
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_integration_client_software: invalid_choice
+              rescue:
+                - name: Mark invalid client_software choice rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_client_software_choice_failed: true
+                  when: >-
+                    'ad_integration_client_software' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid client_software choice was rejected
+              ansible.builtin.assert:
+                that:
+                  - >-
+                    __invalid_input_client_software_choice_failed
+                    | default(false)
+                fail_msg: >-
+                  argument_specs should reject
+                  ad_integration_client_software value
+                  'invalid_choice'
+
+            - name: Argument specs reject invalid membership_software choice
+              block:
+                - name: Run role with invalid ad_integration_membership_software
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_integration_membership_software: invalid_choice
+              rescue:
+                - name: Mark invalid membership_software choice rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_membership_software_choice_failed: true
+                  when: >-
+                    'ad_integration_membership_software' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid membership_software choice was rejected
+              ansible.builtin.assert:
+                that:
+                  - >-
+                    __invalid_input_membership_software_choice_failed
+                    | default(false)
+                fail_msg: >-
+                  argument_specs should reject
+                  ad_integration_membership_software value
+                  'invalid_choice'
+
+            - name: Argument specs reject invalid sssd_settings state choice
+              block:
+                - name: Run role with invalid sssd_settings state
+                  ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+                  vars:
+                    ad_integration_sssd_settings:
+                      - key: reconnection_retries
+                        value: 5
+                        state: invalid_choice
+              rescue:
+                - name: Mark invalid sssd_settings state choice rejected
+                  ansible.builtin.set_fact:
+                    __invalid_input_sssd_settings_state_choice_failed: true
+                  when: >-
+                    'ad_integration_sssd_settings' in
+                    (ansible_failed_result | default({}) | to_json)
+
+            - name: Assert invalid sssd_settings state choice was rejected
+              ansible.builtin.assert:
+                that:
+                  - >-
+                    __invalid_input_sssd_settings_state_choice_failed
+                    | default(false)
+                fail_msg: >-
+                  argument_specs should reject
+                  ad_integration_sssd_settings state value
+                  'invalid_choice'
+
+        # ====================================================
+        # Section 3: assert_role_vars validation (all versions)
+        # ====================================================
+
+        # --- Test: raw type fields with wrong types ---
+        - name: Assert rejects ad_integration_realm as integer
+          block:
+            - name: Run role with ad_integration_realm as integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_integration_realm: 123
+          rescue:
+            - name: Mark ad_integration_realm integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_realm_int_failed: true
+              when: >-
+                'ad_integration_realm' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert ad_integration_realm as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_realm_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject ad_integration_realm
+              when given an integer value
+
+        - name: Assert rejects ad_integration_join_to_dc as integer
+          block:
+            - name: Run role with ad_integration_join_to_dc as integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_integration_join_to_dc: 123
+          rescue:
+            - name: Mark ad_integration_join_to_dc integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_join_to_dc_int_failed: true
+              when: >-
+                'ad_integration_join_to_dc' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert ad_integration_join_to_dc as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_join_to_dc_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject ad_integration_join_to_dc
+              when given an integer value
+
+        - name: Assert rejects ad_dyndns_iface as integer
+          block:
+            - name: Run role with ad_dyndns_iface as integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_dyndns_iface: 123
+          rescue:
+            - name: Mark ad_dyndns_iface integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_dyndns_iface_int_failed: true
+              when: >-
+                'ad_dyndns_iface' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert ad_dyndns_iface as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_dyndns_iface_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject ad_dyndns_iface when
+              given an integer value
+
+        - name: Assert rejects ad_dyndns_iface as dict
+          block:
+            - name: Run role with ad_dyndns_iface as dict
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_dyndns_iface:
+                  eth0: true
+          rescue:
+            - name: Mark ad_dyndns_iface dict rejected
+              ansible.builtin.set_fact:
+                __invalid_input_dyndns_iface_dict_failed: true
+              when: >-
+                'ad_dyndns_iface' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert ad_dyndns_iface as dict was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_dyndns_iface_dict_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject ad_dyndns_iface when
+              given a dictionary value
+
+        - name: Assert rejects ad_dyndns_auth as integer
+          block:
+            - name: Run role with ad_dyndns_auth as integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_dyndns_auth: 123
+          rescue:
+            - name: Mark ad_dyndns_auth integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_dyndns_auth_int_failed: true
+              when: >-
+                'ad_dyndns_auth' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert ad_dyndns_auth as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_dyndns_auth_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject ad_dyndns_auth when
+              given an integer value
+
+        - name: Assert rejects invalid ad_dyndns_auth string
+          block:
+            - name: Run role with invalid ad_dyndns_auth string
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_dyndns_auth: invalid_choice
+          rescue:
+            - name: Mark invalid ad_dyndns_auth string rejected
+              ansible.builtin.set_fact:
+                __invalid_input_dyndns_auth_choice_failed: true
+              when: >-
+                'ad_dyndns_auth' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert invalid ad_dyndns_auth string was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_dyndns_auth_choice_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject ad_dyndns_auth when
+              given a string that is not GSS-TSIG or none
+
+        - name: Assert rejects ad_dyndns_server as integer
+          block:
+            - name: Run role with ad_dyndns_server as integer
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_dyndns_server: 123
+          rescue:
+            - name: Mark ad_dyndns_server integer rejected
+              ansible.builtin.set_fact:
+                __invalid_input_dyndns_server_int_failed: true
+              when: >-
+                'ad_dyndns_server' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert ad_dyndns_server as integer was rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_dyndns_server_int_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject ad_dyndns_server when
+              given an integer value
+
+        - name: Assert rejects sssd_settings value as list
+          block:
+            - name: Run role with sssd_settings value as list
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_integration_sssd_settings:
+                  - key: reconnection_retries
+                    value:
+                      - not
+                      - a
+                      - scalar
+          rescue:
+            - name: Mark sssd_settings list value rejected
+              ansible.builtin.set_fact:
+                __invalid_input_sssd_settings_value_list_failed: true
+              when: >-
+                'ad_integration_sssd_settings' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert sssd_settings value as list was rejected
+          ansible.builtin.assert:
+            that:
+              - >-
+                __invalid_input_sssd_settings_value_list_failed
+                | default(false)
+            fail_msg: >-
+              assert_role_vars should reject
+              ad_integration_sssd_settings value when given a list
+
+        # --- Test: cross-field dependencies ---
+        - name: Assert rejects manage_timesync without timesync_source
+          block:
+            - name: Run role with manage_timesync and no timesync_source
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_integration_manage_timesync: true
+                ad_integration_timesync_source:
+          rescue:
+            - name: Mark missing timesync_source rejected
+              ansible.builtin.set_fact:
+                __invalid_input_timesync_source_required_failed: true
+              when: >-
+                'ad_integration_timesync_source must be provided' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert missing timesync_source was rejected
+          ansible.builtin.assert:
+            that:
+              - >-
+                __invalid_input_timesync_source_required_failed
+                | default(false)
+            fail_msg: >-
+              assert_role_vars should reject
+              ad_integration_manage_timesync when
+              ad_integration_timesync_source is not provided
+
+        - name: Assert rejects manage_dns without required dns variables
+          block:
+            - name: Run role with manage_dns and no dns variables
+              ansible.builtin.include_tasks: tasks/run_role_with_clear_facts.yml
+              vars:
+                ad_integration_manage_dns: true
+          rescue:
+            - name: Mark missing dns variables rejected
+              ansible.builtin.set_fact:
+                __invalid_input_dns_required_failed: true
+              when: >-
+                'must be provided if manage dns is true' in
+                (ansible_failed_result | default({}) | to_json)
+
+        - name: Assert missing dns variables were rejected
+          ansible.builtin.assert:
+            that:
+              - __invalid_input_dns_required_failed | default(false)
+            fail_msg: >-
+              assert_role_vars should reject
+              ad_integration_manage_dns when required DNS variables
+              are not provided
+
+      always:
+        - name: Clear test facts
+          ansible.builtin.set_fact:
+            __valid_defaults_succeeded:
+            __invalid_input_missing_sssd_key_failed:
+            __invalid_input_missing_sssd_custom_key_failed:
+            __invalid_input_force_rejoin_type_failed:
+            __invalid_input_dyndns_update_type_failed:
+            __invalid_input_manage_packages_type_failed:
+            __invalid_input_dyndns_ttl_type_failed:
+            __invalid_input_dyndns_refresh_type_failed:
+            __invalid_input_sssd_settings_type_failed:
+            __invalid_input_client_software_choice_failed:
+            __invalid_input_membership_software_choice_failed:
+            __invalid_input_sssd_settings_state_choice_failed:
+            __invalid_input_realm_int_failed:
+            __invalid_input_join_to_dc_int_failed:
+            __invalid_input_dyndns_iface_int_failed:
+            __invalid_input_dyndns_iface_dict_failed:
+            __invalid_input_dyndns_auth_int_failed:
+            __invalid_input_dyndns_auth_choice_failed:
+            __invalid_input_dyndns_server_int_failed:
+            __invalid_input_sssd_settings_value_list_failed:
+            __invalid_input_timesync_source_required_failed:
+            __invalid_input_dns_required_failed:
+          tags: tests::cleanup

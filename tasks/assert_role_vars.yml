@@ -1,0 +1,167 @@
+# SPDX-License-Identifier: MIT
+---
+- name: Assert ad_integration_realm is a string
+  ansible.builtin.assert:
+    that:
+      - ad_integration_realm is string
+    fail_msg: >-
+      ad_integration_realm must be a string,
+      got {{ ad_integration_realm | type_debug }}
+  when: ad_integration_realm is not none
+
+- name: Ensure that mandatory variable ad_integration_realm is available
+  ansible.builtin.fail:
+    msg: Variable ad_integration_realm must be provided!
+  when: not ad_integration_realm
+
+- name: Assert ad_integration_join_to_dc is null or a string
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_integration_join_to_dc is none)
+        or (ad_integration_join_to_dc is string)
+    fail_msg: >-
+      ad_integration_join_to_dc must be null or a string,
+      got {{ ad_integration_join_to_dc | type_debug }}
+  when: ad_integration_join_to_dc is defined
+
+- name: Assert ad_integration_computer_ou is null or a string
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_integration_computer_ou is none)
+        or (ad_integration_computer_ou is string)
+    fail_msg: >-
+      ad_integration_computer_ou must be null or a string,
+      got {{ ad_integration_computer_ou | type_debug }}
+  when: ad_integration_computer_ou is defined
+
+- name: Assert ad_integration_timesync_source is null or a string
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_integration_timesync_source is none)
+        or (ad_integration_timesync_source is string)
+    fail_msg: >-
+      ad_integration_timesync_source must be null or a string,
+      got {{ ad_integration_timesync_source | type_debug }}
+  when: ad_integration_timesync_source is defined
+
+- name: Ensure time source is provided if managing timesync
+  ansible.builtin.fail:
+    msg: >-
+      ad_integration_timesync_source must be provided if
+      manage timesync is true
+  when:
+    - ad_integration_manage_timesync | bool
+    - ad_integration_timesync_source is none
+
+- name: Assert ad_integration_dns_server is null or a string
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_integration_dns_server is none)
+        or (ad_integration_dns_server is string)
+    fail_msg: >-
+      ad_integration_dns_server must be null or a string,
+      got {{ ad_integration_dns_server | type_debug }}
+  when: ad_integration_dns_server is defined
+
+- name: Assert ad_integration_dns_connection_name is null or a string
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_integration_dns_connection_name is none)
+        or (ad_integration_dns_connection_name is string)
+    fail_msg: >-
+      ad_integration_dns_connection_name must be null or a string,
+      got {{ ad_integration_dns_connection_name | type_debug }}
+  when: ad_integration_dns_connection_name is defined
+
+- name: Assert ad_integration_dns_connection_type is null or a string
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_integration_dns_connection_type is none)
+        or (ad_integration_dns_connection_type is string)
+    fail_msg: >-
+      ad_integration_dns_connection_type must be null or a string,
+      got {{ ad_integration_dns_connection_type | type_debug }}
+  when: ad_integration_dns_connection_type is defined
+
+- name: Ensure all required dns variables are provided
+  ansible.builtin.fail:
+    msg: >-
+      ad_integration_dns_server, ad_integration_dns_connection_name, and
+      ad_integration_dns_connection_type must be provided if manage dns is true
+  when:
+    - ad_integration_manage_dns | bool
+    - (ad_integration_dns_server is none or
+       ad_integration_dns_connection_name is none or
+       ad_integration_dns_connection_type is none)
+
+- name: Assert ad_dyndns_iface is null, a string, or a list of strings
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_dyndns_iface is none)
+        or (ad_dyndns_iface is string)
+        or (ad_dyndns_iface is sequence and ad_dyndns_iface is not mapping
+            and ad_dyndns_iface | reject('string') | list | length == 0)
+    fail_msg: >-
+      ad_dyndns_iface must be null, a string, or a list of strings,
+      got {{ ad_dyndns_iface | type_debug }}
+  when: ad_dyndns_iface is defined
+
+- name: Assert ad_dyndns_auth is null or a valid authentication method
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_dyndns_auth is none)
+        or (ad_dyndns_auth is string
+            and ad_dyndns_auth in ['GSS-TSIG', 'none'])
+    fail_msg: >-
+      ad_dyndns_auth must be null, `GSS-TSIG`, or `none`,
+      got {{ ad_dyndns_auth | type_debug }}
+  when: ad_dyndns_auth is defined
+
+- name: Assert ad_dyndns_server is null or a string
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_dyndns_server is none)
+        or (ad_dyndns_server is string)
+    fail_msg: >-
+      ad_dyndns_server must be null or a string,
+      got {{ ad_dyndns_server | type_debug }}
+  when: ad_dyndns_server is defined
+
+- name: Assert value in ad_integration_sssd_settings is a string or integer
+  ansible.builtin.assert:
+    that:
+      - >-
+        item.value is string
+        or (item.value | type_debug) == 'int'
+    fail_msg: >-
+      ad_integration_sssd_settings[{{ idx }}].value must be a string or
+      integer, got {{ item.value | type_debug }}
+  loop: "{{ ad_integration_sssd_settings }}"
+  loop_control:
+    index_var: idx
+    label: "{{ item.key | d('unnamed') }}"
+  when: item.value is defined
+
+- name: Assert value in ad_integration_sssd_custom_settings is a string or integer
+  ansible.builtin.assert:
+    that:
+      - >-
+        item.value is string
+        or (item.value | type_debug) == 'int'
+    fail_msg: >-
+      ad_integration_sssd_custom_settings[{{ idx }}].value must be a
+      string or integer, got {{ item.value | type_debug }}
+  loop: "{{ ad_integration_sssd_custom_settings }}"
+  loop_control:
+    index_var: idx
+    label: "{{ item.key | d('unnamed') }}"
+  when: item.value is defined
