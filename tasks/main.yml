@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: MIT
 ---
-- name: Ensure that mandatory variable ad_integration_realm is available
-  fail:
-    msg: Variable ad_integration_realm must be provided!
-  when: not ad_integration_realm
+- name: Validate role parameters
+  include_tasks: assert_role_vars.yml
 
 - name: Assume managing timesync if timesource is set
   set_fact:
@@ -11,15 +9,6 @@
   when:
     - ad_integration_timesync_source is not none
     - ad_integration_timesync_source | length > 0
-
-- name: Ensure time source is provided if managing timesync
-  fail:
-    msg: >-
-      ad_integration_timesync_source must be provided if
-      manage timesync is true
-  when:
-    - ad_integration_manage_timesync | bool
-    - ad_integration_timesync_source is none
 
 # Validate manage crypto variables
 - name: Assume managing crypto policies if allow_rc4_crypto is set
@@ -35,18 +24,6 @@
   when:
     - ad_integration_allow_rc4_crypto | bool
     - not ad_integration_manage_crypto_policies
-
-# Validate manage dns variables
-- name: Ensure all required dns variables are provided
-  fail:
-    msg: >-
-      ad_integration_dns_server, ad_integration_dns_connection_name, and
-      ad_integration_dns_connection_type must be provided if manage dns is true
-  when:
-    - ad_integration_manage_dns | bool
-    - (ad_integration_dns_server is none or
-       ad_integration_dns_connection_name is none or
-       ad_integration_dns_connection_type is none)
 
 - name: Set platform/version specific variables
   include_tasks: tasks/set_vars.yml

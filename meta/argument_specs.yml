@@ -1,0 +1,305 @@
+# SPDX-License-Identifier: MIT
+---
+argument_specs:
+  main:
+    short_description: The ad_integration role.
+    description: >
+      The ad_integration role allows you to join RHEL, Fedora, and
+      CentOS systems to an Active Directory domain using `realmd`.
+      It can install required packages, optionally manage time
+      synchronization, crypto policies, and DNS, join the domain,
+      and configure SSSD including dynamic DNS updates.
+    options:
+      ad_integration_realm:
+        type: raw
+        default: null
+        description: >
+          The Active Directory realm or domain name to join. A
+          non-empty string must be provided. When managing SSSD
+          domain settings, this value is used to locate the matching
+          `[domain/<realm>]` section in `sssd.conf`.
+      ad_integration_password:
+        type: str
+        default: ""
+        description: >
+          The password of the user used to authenticate the domain
+          join. The value should be provided via Ansible Vault rather
+          than cleartext.
+      ad_integration_user:
+        type: str
+        default: Administrator
+        description: >
+          The Active Directory user used to authenticate the domain
+          join.
+      ad_integration_join_to_dc:
+        type: raw
+        default: null
+        description: >
+          The hostname of a specific Active Directory domain
+          controller to join through directly. Accepts `null` or a
+          hostname string. IP addresses are not supported.
+      ad_integration_force_rejoin:
+        type: bool
+        default: false
+        description: >
+          Whether to leave an existing domain before performing the
+          join. This may be needed if the keytab cannot authenticate
+          the machine account to Active Directory.
+      ad_integration_auto_id_mapping:
+        type: bool
+        default: true
+        description: >
+          Whether to perform automatic UID and GID mapping for users
+          and groups. Set to `false` to use POSIX attributes already
+          present in Active Directory as described in RFC2307.
+      ad_integration_client_software:
+        type: str
+        default: sssd
+        choices:
+          - sssd
+          - winbind
+        description: >
+          The preferred client software for use with Active
+          Directory. `sssd` uses SSSD; `winbind` uses Samba
+          winbind. Not all values are supported for all realms.
+      ad_integration_membership_software:
+        type: str
+        default: adcli
+        choices:
+          - samba
+          - adcli
+        description: >
+          The software used when joining the realm. `adcli` uses
+          adcli; `samba` uses Samba tools. Not all values are
+          supported for all realms.
+      ad_integration_computer_ou:
+        type: raw
+        default: null
+        description: >
+          The distinguished name of an organizational unit in which
+          to create the computer account. Accepts `null`, a DN
+          relative to the Root DSE, or a complete LDAP DN.
+      ad_integration_manage_timesync:
+        type: bool
+        default: false
+        description: >
+          Whether to use the `timesync` system role to synchronize
+          the system clock. When `true`,
+          `ad_integration_timesync_source` must be provided.
+          Providing `ad_integration_timesync_source` also enables
+          this setting.
+      ad_integration_timesync_source:
+        type: raw
+        default: null
+        description: >
+          The hostname or IP address of the time source used to
+          synchronize the system clock. Accepts `null` or a string.
+          Only applicable when `ad_integration_manage_timesync` is
+          `true`.
+      ad_integration_manage_crypto_policies:
+        type: bool
+        default: false
+        description: >
+          Whether to use the `crypto_policies` system role to manage
+          crypto policies as needed for Active Directory. Providing
+          `ad_integration_allow_rc4_crypto` also enables this
+          setting.
+      ad_integration_allow_rc4_crypto:
+        type: bool
+        default: false
+        description: >
+          Whether to set a crypto policy that allows RC4 encryption.
+          Applying the policy may reboot the system. Requires
+          `ad_integration_manage_crypto_policies` to be `true`.
+      ad_integration_manage_dns:
+        type: bool
+        default: false
+        description: >
+          Whether to use the `network` system role to configure an
+          existing connection with a manual DNS server for Active
+          Directory. When `true`, `ad_integration_dns_server`,
+          `ad_integration_dns_connection_name`, and
+          `ad_integration_dns_connection_type` must be provided.
+      ad_integration_dns_server:
+        type: raw
+        default: null
+        description: >
+          The IP address of the DNS server to add to the existing
+          network configuration. Accepts `null` or a string. Only
+          applicable when `ad_integration_manage_dns` is `true`.
+      ad_integration_dns_connection_name:
+        type: raw
+        default: null
+        description: >
+          The name of the connection profile to configure via the
+          `network` role. This is not the name of the networking
+          interface. Accepts `null` or a string. Only applicable
+          when `ad_integration_manage_dns` is `true`.
+      ad_integration_dns_connection_type:
+        type: raw
+        default: null
+        description: >
+          The network connection type of the profile to configure,
+          such as `ethernet`, `bridge`, or `bond`. Accepts `null`
+          or a string. Only applicable when
+          `ad_integration_manage_dns` is `true`.
+      ad_dyndns_update:
+        type: bool
+        default: false
+        description: >
+          Whether SSSD automatically updates the Active Directory
+          DNS server with the IP address of the client.
+      ad_dyndns_ttl:
+        type: int
+        default: 3600
+        description: >
+          The TTL, in seconds, applied to the client's DNS record
+          when updating it. This overrides the TTL set by an
+          administrator on the server. Only applicable when
+          `ad_dyndns_update` is `true`.
+      ad_dyndns_iface:
+        type: raw
+        default: null
+        description: >
+          The interface or list of interfaces whose IP addresses
+          should be used for dynamic DNS updates. Accepts `null`,
+          a string, or a list of strings. The special value `*`
+          uses all IP addresses from all interfaces. Only
+          applicable when `ad_dyndns_update` is `true`.
+      ad_dyndns_refresh_interval:
+        type: int
+        default: 86400
+        description: >
+          How often, in seconds, periodic DNS updates are performed
+          in addition to when the back end goes online. Values
+          below `60` are treated by SSSD as `60`. Only applicable
+          when `ad_dyndns_update` is `true`.
+      ad_dyndns_update_ptr:
+        type: bool
+        default: true
+        description: >
+          Whether the PTR record should also be explicitly updated.
+          Only applicable when `ad_dyndns_update` is `true`.
+      ad_dyndns_force_tcp:
+        type: bool
+        default: false
+        description: >
+          Whether the `nsupdate` utility should default to TCP when
+          communicating with the DNS server. Only applicable when
+          `ad_dyndns_update` is `true`.
+      ad_dyndns_auth:
+        type: raw
+        default: null
+        description: >
+          The authentication method used for secure DNS updates of
+          A and AAAA records. Accepts `null`, `GSS-TSIG` for
+          GSS-TSIG authentication, or `none` to allow insecure
+          updates. Only applicable when `ad_dyndns_update` is
+          `true`.
+      ad_dyndns_server:
+        type: raw
+        default: null
+        description: >
+          The DNS server to use when performing a DNS update if
+          autodetection fails. Accepts `null` or a string. Only
+          applicable when `ad_dyndns_update` is `true`.
+      ad_integration_join_parameters:
+        type: str
+        default: ""
+        description: >
+          Additional parameters passed directly to the `realm join`
+          command, such as `--user-principal host/client@EXAMPLE.COM`
+          or `--use-ldaps`.
+      ad_integration_sssd_settings:
+        type: list
+        elements: dict
+        default: []
+        description: >
+          A list of settings to include in the `[sssd]` section of
+          `sssd.conf`. Each item is a dictionary with a `key`,
+          `value`, and optional `state`.
+        options:
+          key:
+            type: str
+            required: true
+            description: >
+              The SSSD configuration option name.
+          value:
+            type: raw
+            description: >
+              The SSSD configuration option value. Accepts a string
+              or integer.
+          state:
+            type: str
+            choices:
+              - present
+              - absent
+            description: >
+              Whether the option should be present in or removed
+              from `sssd.conf`.
+      ad_integration_sssd_custom_settings:
+        type: list
+        elements: dict
+        default: []
+        description: >
+          A list of custom settings to include in the
+          `[domain/<realm>]` section of `sssd.conf`. Each item is
+          a dictionary with a `key`, `value`, and optional `state`.
+        options:
+          key:
+            type: str
+            required: true
+            description: >
+              The SSSD domain configuration option name.
+          value:
+            type: raw
+            description: >
+              The SSSD domain configuration option value. Accepts
+              a string or integer.
+          state:
+            type: str
+            choices:
+              - present
+              - absent
+            description: >
+              Whether the option should be present in or removed
+              from `sssd.conf`.
+      ad_integration_preserve_authselect_profile:
+        type: bool
+        default: false
+        description: >
+          Whether to configure `realmd.conf` to remove the
+          `authselect` command from `sssd-enable-logins` so that
+          previous PAM and nsswitch changes are not overwritten.
+      ad_integration_manage_packages:
+        type: bool
+        default: true
+        description: >
+          Whether the role installs the OS-level packages needed
+          for Active Directory integration. When `false`, the role
+          assumes that all prerequisites are already in place.
+      ad_integration_sssd_merge_duplicate_sections:
+        type: bool
+        default: false
+        description: >
+          Whether to consolidate duplicate `[domain/<realm>]`
+          sections in `sssd.conf` into a single section matching
+          `ad_integration_realm`. Enabling this also performs a
+          force rejoin so settings are applied correctly after
+          the merge.
+      ad_integration_secure_logging:
+        type: bool
+        default: true
+        description: >
+          Whether to suppress potentially sensitive output from
+          tasks that handle credentials, secrets, and other
+          sensitive data.
+      ad_integration_validate_sssd_config:
+        type: bool
+        default: true
+        description: >
+          Whether to run `sssctl config-check` after SSSD
+          configuration changes and before any role-triggered SSSD
+          restart when `ad_integration_client_software` is `sssd`.
+          An invalid configuration fails the role and prevents that
+          restart.
