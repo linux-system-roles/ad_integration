@@ -123,6 +123,7 @@
 
       always:
         - name: Remove validation test directory
+          tags: tests::cleanup
           file:
             path: "{{ __validation_tmp.path }}"
             state: absent

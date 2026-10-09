@@ -7,6 +7,7 @@
 # Examples of non-distribution specific (generic) internal variables:
 __ad_integration_realmd_config: realmd.conf
 __ad_integration_packages:
+  - adcli
   - realmd
   - PackageKit
 __ad_integration_services: [realmd]
@@ -31,8 +32,11 @@ __ad_integration_sample_realm: sample-realm.com
 __ad_integration_sample_dc: sample-dc.sample-realm.com
 # path to sssd.conf file
 __ad_integration_sssd_conf: /etc/sssd/sssd.conf
+# directory containing SSSD domain cache files
+__ad_integration_sssd_db_dir: /var/lib/sss/db
 # realm command
 __ad_integration_realm_cmd: realm
+__ad_integration_adcli_cmd: adcli
 
 __ad_integration_write_log_file: false
 

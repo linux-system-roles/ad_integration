@@ -14,6 +14,28 @@
     msg: Variable ad_integration_realm must be provided!
   when: not ad_integration_realm
 
+- name: Assert requested realm state is valid
+  ansible.builtin.assert:
+    that:
+      - ad_integration_state in ['present', 'absent']
+    fail_msg: ad_integration_state must be present or absent
+
+- name: Assert remote leave actions are mutually exclusive
+  ansible.builtin.assert:
+    that:
+      - not (ad_integration_leave_remove_computer | bool and
+             ad_integration_leave_reset_computer | bool)
+    fail_msg: >-
+      ad_integration_leave_remove_computer and
+      ad_integration_leave_reset_computer cannot both be true
+
+- name: Assert leave computer name is null or a string
+  ansible.builtin.assert:
+    that:
+      - ad_integration_leave_computer_name is none or
+        ad_integration_leave_computer_name is string
+    fail_msg: ad_integration_leave_computer_name must be null or a string
+
 - name: Assert ad_integration_join_to_dc is null or a string
   ansible.builtin.assert:
     that:
@@ -53,6 +75,7 @@
       ad_integration_timesync_source must be provided if
       manage timesync is true
   when:
+    - ad_integration_state == 'present'
     - ad_integration_manage_timesync | bool
     - ad_integration_timesync_source is none
 
@@ -95,6 +118,7 @@
       ad_integration_dns_server, ad_integration_dns_connection_name, and
       ad_integration_dns_connection_type must be provided if manage dns is true
   when:
+    - ad_integration_state == 'present'
     - ad_integration_manage_dns | bool
     - (ad_integration_dns_server is none or
        ad_integration_dns_connection_name is none or

@@ -22,10 +22,6 @@
       set_fact:
         ad_integration_realm: domain.com
       when: ad_integration_realm is not defined or not ad_integration_realm
-    - name: Set ad_integration_force_rejoin
-      set_fact:
-        ad_integration_force_rejoin: true
-
 - name: Prepare user and groups on the AD
   hosts: ad
   tasks:
@@ -97,11 +93,52 @@
             line: "# Touched by a test"
           changed_when: false
 
+        - name: Find the real realm command
+          command: command -v realm
+          register: __real_realm_cmd
+          changed_when: false
+
+        - name: Create temporary realm command wrapper directory
+          tempfile:
+            state: directory
+            prefix: ad_rejoin_
+          register: __realm_wrapper_tmp
+
+        - name: Wrap realm to require the requested realm on leave
+          copy:
+            dest: "{{ __realm_wrapper_tmp.path }}/realm"
+            mode: "0755"
+            content: |
+              #!/bin/sh
+              if [ "$1" = "-v" ] && [ "$2" = "leave" ]; then
+                  if [ "$#" -ne 3 ] || [ "$3" != {{ ad_integration_realm | quote }} ]; then
+                      echo "realm leave must name ad_integration_realm" >&2
+                      exit 99
+                  fi
+                  printf '%s\n' "$3" >> {{ (__realm_wrapper_tmp.path ~ '/leave_calls') | quote }}
+              fi
+              exec {{ __real_realm_cmd.stdout | quote }} "$@"
+
+        - name: Use the checked realm command for the rest of the test
+          set_fact:
+            __ad_integration_realm_cmd: "{{ __realm_wrapper_tmp.path }}/realm"
+
         - name: Test run the system role with force rejoin
           include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             ad_integration_force_rejoin: true
           register: role_run_rejoin
+
+        - name: Read rejoin leave calls
+          slurp:
+            src: "{{ __realm_wrapper_tmp.path }}/leave_calls"
+          register: __rejoin_leave_calls
+
+        - name: Assert rejoin left the requested realm explicitly
+          assert:
+            that:
+              - (__rejoin_leave_calls.content | b64decode).splitlines() ==
+                [ad_integration_realm]
 
         - name: Debug role_run_rejoin
           debug:
@@ -140,8 +177,104 @@
           command: getent group test_grp1@{{ ad_integration_realm }}
           changed_when: false
 
+        - name: Create selected and neighboring SSSD cache test files
+          copy:
+            dest: "{{ __realm_wrapper_tmp.path }}/{{ item }}"
+            content: test
+            mode: "0600"
+          loop:
+            - "cache_{{ ad_integration_realm | lower }}.ldb"
+            - "timestamps_{{ ad_integration_realm | lower }}.ldb"
+            - "cache_neighbor.{{ ad_integration_realm | lower }}.ldb"
+
+        - name: Leave the realm through the role
+          include_tasks: tasks/run_role_with_clear_facts.yml
+          vars:
+            ad_integration_state: absent
+            ad_integration_leave_remove_computer: false
+            ad_integration_leave_reset_computer: false
+            ad_integration_leave_sssd_cache_delete: true
+            __ad_integration_sssd_db_dir: "{{ __realm_wrapper_tmp.path }}"
+
+        - name: Check selected and neighboring SSSD cache test files
+          stat:
+            path: "{{ __realm_wrapper_tmp.path }}/{{ item }}"
+          loop:
+            - "cache_{{ ad_integration_realm | lower }}.ldb"
+            - "timestamps_{{ ad_integration_realm | lower }}.ldb"
+            - "cache_neighbor.{{ ad_integration_realm | lower }}.ldb"
+          register: __rejoin_cache_after_leave
+
+        - name: Gather SSSD service state after leave
+          service_facts:
+
+        - name: Record SSSD service state after leave
+          set_fact:
+            __rejoin_sssd_after_leave: >-
+              {{ ansible_facts.services.get('sssd.service',
+                 ansible_facts.services.get('sssd', {})).get('state', 'absent') }}
+
+        - name: Assert targeted cache deletion and SSSD state restoration
+          assert:
+            that:
+              - not __rejoin_cache_after_leave.results[0].stat.exists
+              - not __rejoin_cache_after_leave.results[1].stat.exists
+              - __rejoin_cache_after_leave.results[2].stat.exists
+              - not __ad_integration_leave_sssd_running or
+                __rejoin_sssd_after_leave == 'running'
+
+        - name: List configured realms after leave
+          command: realm list --name-only
+          register: __realms_after_leave
+          changed_when: false
+
+        - name: Assert the requested realm is no longer configured
+          assert:
+            that:
+              - ad_integration_realm | lower not in
+                (__realms_after_leave.stdout_lines | map('lower') | list)
+
+        - name: Repeat leave through the role
+          include_tasks: tasks/run_role_with_clear_facts.yml
+          vars:
+            ad_integration_state: absent
+            ad_integration_leave_sssd_cache_delete: true
+            __ad_integration_sssd_db_dir: "{{ __realm_wrapper_tmp.path }}"
+
+        - name: Gather SSSD service state after repeated leave
+          service_facts:
+
+        - name: Assert repeated leave skipped cache and service changes
+          assert:
+            that:
+              - __ad_integration_leave_cache_files.results |
+                selectattr('stat.exists') | list | length == 0
+              - __ad_integration_leave_check_result is skipped
+              - ansible_facts.services.get('sssd.service',
+                ansible_facts.services.get('sssd', {})).get('state', 'absent') ==
+                __rejoin_sssd_after_leave
+
+        - name: Read all leave calls
+          slurp:
+            src: "{{ __realm_wrapper_tmp.path }}/leave_calls"
+          register: __all_leave_calls
+
+        - name: Assert repeated leave did not call realm again
+          assert:
+            that:
+              - (__all_leave_calls.content | b64decode).splitlines() ==
+                [ad_integration_realm, ad_integration_realm]
+
       always:
         - name: Teardown - Leave realm
-          command: realm leave
+          tags: tests::cleanup
+          command: realm leave {{ ad_integration_realm | quote }}
           ignore_errors: true  # noqa ignore-errors
           changed_when: false
+
+        - name: Remove temporary realm command wrapper
+          tags: tests::cleanup
+          file:
+            path: "{{ __realm_wrapper_tmp.path }}"
+            state: absent
+          when: __realm_wrapper_tmp is defined
