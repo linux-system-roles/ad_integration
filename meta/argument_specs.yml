@@ -45,6 +45,43 @@ argument_specs:
           Whether to leave an existing domain before performing the
           join. This may be needed if the keytab cannot authenticate
           the machine account to Active Directory.
+      ad_integration_state:
+        type: str
+        default: present
+        choices:
+          - present
+          - absent
+        description: >
+          Join or leave the requested realm. Absent removes the local realm
+          configuration without deleting the remote computer account by
+          default.
+      ad_integration_leave_remove_computer:
+        type: bool
+        default: false
+        description: >
+          When leaving a configured realm, remove or disable its computer
+          account in Active Directory using ad_integration_user and
+          ad_integration_password.
+      ad_integration_leave_reset_computer:
+        type: bool
+        default: false
+        description: >
+          When leaving, reset the selected computer account through adcli
+          before local unconfiguration. Cannot be used with
+          ad_integration_leave_remove_computer.
+      ad_integration_leave_computer_name:
+        type: raw
+        default: null
+        description: >
+          Computer name passed to adcli reset-computer. Null uses the
+          host's FQDN. Only used when resetting the computer account.
+      ad_integration_leave_sssd_cache_delete:
+        type: bool
+        default: false
+        description: >
+          When leaving, delete only the selected realm's SSSD cache and
+          timestamp files. If SSSD is running, the role stops it briefly
+          and restores it afterward.
       ad_integration_auto_id_mapping:
         type: bool
         default: true

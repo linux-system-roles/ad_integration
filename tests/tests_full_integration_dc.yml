@@ -108,6 +108,7 @@
 
       always:
         - name: Teardown - Leave realm
+          tags: tests::cleanup
           command: realm leave
           ignore_errors: true  # noqa ignore-errors
           changed_when: false

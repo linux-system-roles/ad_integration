@@ -14,7 +14,11 @@ def parse_args():
     parser.add_argument("-v", action="store_true")
     subparsers = parser.add_subparsers(dest="subcmd_name")
     parser_list = subparsers.add_parser("list")
+    parser_list.add_argument("--name-only", action="store_true")
     parser_leave = subparsers.add_parser("leave")
+    parser_leave.add_argument("--remove", action="store_true")
+    parser_leave.add_argument("-U", "--user")
+    parser_leave.add_argument("realm", nargs="?")
     parser_join = subparsers.add_parser("join")
     parser_join.add_argument("-U", "--user")
     parser_join.add_argument("--membership-software")
@@ -36,8 +40,16 @@ conf = ConfigParser()
 conf.read(sssd_conf)
 
 if args.subcmd_name == "list":
-    print("{{ __ad_integration_realm_list | d('') }}")
+    configured = "{{ __ad_integration_realm_list | d('') }}"
+    if args.name_only:
+        print("\n".join(line.split(":", 1)[-1].strip()
+                        for line in configured.splitlines()
+                        if line.startswith("domain-name:")))
+    else:
+        print(configured)
 elif args.subcmd_name == "leave":
+    if args.realm != "{{ ad_integration_realm }}":
+        sys.exit(2)
     # When leaving, if there are duplicate sections, we don't
     # know which one will be removed - just remove the first
     for existing_section in conf.sections():

@@ -19,6 +19,25 @@ ad_integration_join_to_dc: null
 # Leave existing domain prior to performing join.
 ad_integration_force_rejoin: false
 
+# Join the realm or leave the requested realm. Leaving does not remove the
+# computer account from AD unless explicitly requested below.
+ad_integration_state: present
+
+# If leaving, remove or disable the computer account in AD. Requires the
+# administrative user and password used for the removal operation.
+ad_integration_leave_remove_computer: false
+
+# If leaving, reset the remote computer account through adcli before locally
+# leaving. Cannot be combined with ad_integration_leave_remove_computer.
+ad_integration_leave_reset_computer: false
+
+# Computer name to reset in AD; null uses the host's FQDN.
+ad_integration_leave_computer_name: null
+
+# If leaving, delete only the selected realm's SSSD cache and timestamp files.
+# SSSD is briefly stopped and restored if it was running.
+ad_integration_leave_sssd_cache_delete: false
+
 # Turn it off to use UID and GID information stored in the directory
 #  (as-per RFC2307) rather than automatically generating UID and GID numbers
 ad_integration_auto_id_mapping: true

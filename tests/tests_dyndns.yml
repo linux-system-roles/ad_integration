@@ -152,6 +152,7 @@
 
       always:
         - name: Cleanup fake realm
+          tags: tests::cleanup
           include_tasks: tasks/manage_fake_realm.yml
           vars:
             __manage_fake_realm: cleanup

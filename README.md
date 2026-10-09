@@ -93,7 +93,104 @@ Default: Not set
 
 Leave existing domain prior to performing join. This might be needed if the keytab is unable to authenticate with the machine account to the AD domain.
 
+The role leaves only `ad_integration_realm`, including on hosts configured for
+more than one realm.
+
 Default: false
+
+#### ad_integration_state
+
+Set to `present` to join or configure `ad_integration_realm`, or `absent` to
+leave that realm. An absent realm is a no-op. Leaving skips join-only package,
+network, time, crypto policy, and SSSD configuration tasks. Local leave retains
+the remote computer account by default.
+
+Default: `present`
+
+```yaml
+- name: Leave one AD realm locally
+  include_role:
+    name: linux-system-roles.ad_integration
+  vars:
+    ad_integration_realm: example.com
+    ad_integration_state: absent
+```
+
+#### ad_integration_leave_remove_computer
+
+When `ad_integration_state: absent`, set this to `true` to ask `realm leave`
+to remove or disable the selected realm's computer account in Active
+Directory. A configured realm requires `ad_integration_user` and
+`ad_integration_password`; provide the password through Ansible Vault. The
+role passes it on standard input and suppresses task output when
+`ad_integration_secure_logging` is enabled. The role does not attempt remote
+removal when the host is already unjoined.
+
+Default: false
+
+```yaml
+- name: Leave a realm and remove its AD computer account
+  include_role:
+    name: linux-system-roles.ad_integration
+  vars:
+    ad_integration_realm: example.com
+    ad_integration_state: absent
+    ad_integration_leave_remove_computer: true
+    ad_integration_user: Administrator
+    ad_integration_password: "{{ vaulted_ad_password }}"
+```
+
+#### ad_integration_leave_reset_computer
+
+When `ad_integration_state: absent`, set this to `true` to run `adcli
+reset-computer` before local unconfiguration. This keeps the AD account but
+resets its password. Provide `ad_integration_user` and
+`ad_integration_password`; the role passes the password on standard input.
+This cannot be combined with `ad_integration_leave_remove_computer`.
+`adcli` must already be installed on the host.
+
+Default: false
+
+```yaml
+- name: Reset the AD computer account, then leave the realm
+  include_role:
+    name: linux-system-roles.ad_integration
+  vars:
+    ad_integration_realm: example.com
+    ad_integration_state: absent
+    ad_integration_leave_reset_computer: true
+    ad_integration_leave_computer_name: client.example.com
+    ad_integration_user: Administrator
+    ad_integration_password: "{{ vaulted_ad_password }}"
+```
+
+#### ad_integration_leave_computer_name
+
+The computer name passed to `adcli reset-computer`. By default, the role uses
+the host's FQDN. Set this when the AD computer account uses a different name.
+
+Default: null
+
+#### ad_integration_leave_sssd_cache_delete
+
+When `ad_integration_state: absent`, set this to `true` to delete the selected
+realm's `cache_<realm>.ldb` and `timestamps_<realm>.ldb` SSSD files. The role
+briefly stops SSSD if it is running and restores its prior running state.
+Other realms' cache files, shared SSSD databases, and `/etc/krb5.keytab` are
+left alone. Cache deletion is skipped for the winbind client. In check mode,
+the role reports pending deletion without removing files.
+
+Default: false
+
+```yaml
+- name: Leave a realm and delete its SSSD cache files
+  include_role:
+    name: linux-system-roles.ad_integration
+  vars:
+    ad_integration_realm: example.com
+    ad_integration_state: absent
+    ad_integration_leave_sssd_cache_delete: true
+```
 
 #### ad_integration_auto_id_mapping
 
