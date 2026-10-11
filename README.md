@@ -8,6 +8,7 @@ An ansible role which configures direct Active Directory integration.
 
 * RHEL7+, CentOS7+
 * Fedora
+* SLES 16, openSUSE Leap 16
 
 ## Requirements
 
@@ -230,13 +231,13 @@ Hostname or IP address of time source to synchronize the system clock with. Prov
 
 #### ad_integration_manage_crypto_policies
 
-If true, the ad_integration role will use fedora.linux_system_roles.crypto_policies as needed
+If true, the ad_integration role will use fedora.linux_system_roles.crypto_policies as needed. This applies only to Fedora and RHEL8 (and newer), including CentOS, AlmaLinux and Rocky Linux; on other distributions the variable is ignored.
 
 Default: false
 
 #### ad_integration_allow_rc4_crypto
 
-If true, the ad_integration role will set the crypto policy allowing RC4 encryption. Providing this variable automatically sets [ad_integration_manage_crypto_policies](#ad_integration_manage_crypto_policies) to true
+If true, the ad_integration role will set the crypto policy allowing RC4 encryption. Providing this variable automatically sets [ad_integration_manage_crypto_policies](#ad_integration_manage_crypto_policies) to true. Like that variable, it applies only to Fedora and RHEL8 (and newer), including CentOS, AlmaLinux and Rocky Linux, and is ignored elsewhere.
 
 Default: false
 
@@ -459,6 +460,18 @@ these tasks. However, be aware that this may expose sensitive information in
 logs, so it should only be used in development or troubleshooting scenarios.
 
 Default: true
+
+#### ad_integration_transactional_update_reboot_ok
+
+This variable is used to handle reboots required by transactional updates. If a
+transactional update requires a reboot, the role will proceed with the reboot if
+`ad_integration_transactional_update_reboot_ok` is set to `true`. If set to
+`false`, the role will notify the user that a reboot is required, allowing for
+custom handling of the reboot requirement. If this variable is not set, the role
+will fail to ensure the reboot requirement is not overlooked. For
+non-transactional update systems, this variable is ignored.
+
+Default: null
 
 ## Example Playbook
 

@@ -210,3 +210,14 @@
     index_var: idx
     label: "{{ item.key | d('unnamed') }}"
   when: item.value is defined
+
+- name: Assert ad_integration_transactional_update_reboot_ok is null or a boolean
+  ansible.builtin.assert:
+    that:
+      - >-
+        (ad_integration_transactional_update_reboot_ok is none)
+        or (ad_integration_transactional_update_reboot_ok is sameas true)
+        or (ad_integration_transactional_update_reboot_ok is sameas false)
+    fail_msg: >-
+      ad_integration_transactional_update_reboot_ok must be null or a boolean,
+      got {{ ad_integration_transactional_update_reboot_ok | type_debug }}

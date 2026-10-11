@@ -10,6 +10,11 @@ __ad_integration_packages:
   - adcli
   - realmd
   - PackageKit
+# with the packages above, so a transactional system reboots only before join
+__ad_integration_validation_packages: "{{ ['sssd-tools']
+  if ad_integration_state == 'present'
+  and ad_integration_validate_sssd_config | bool
+  and ad_integration_client_software == 'sssd' else [] }}"
 __ad_integration_services: [realmd]
 __ad_integration_services_sssd: [sssd]
 # ansible_facts required by the role

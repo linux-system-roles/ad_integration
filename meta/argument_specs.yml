@@ -140,14 +140,18 @@ argument_specs:
           Whether to use the `crypto_policies` system role to manage
           crypto policies as needed for Active Directory. Providing
           `ad_integration_allow_rc4_crypto` also enables this
-          setting.
+          setting. Applies only to Fedora and RHEL8 (and newer),
+          including CentOS, AlmaLinux and Rocky Linux; on other
+          distributions it is ignored.
       ad_integration_allow_rc4_crypto:
         type: bool
         default: false
         description: >
           Whether to set a crypto policy that allows RC4 encryption.
           Applying the policy may reboot the system. Requires
-          `ad_integration_manage_crypto_policies` to be `true`.
+          `ad_integration_manage_crypto_policies` to be `true`. Like
+          that variable, applies only to Fedora and RHEL8 (and newer),
+          including CentOS, AlmaLinux and Rocky Linux.
       ad_integration_manage_dns:
         type: bool
         default: false
@@ -340,3 +344,13 @@ argument_specs:
           restart when `ad_integration_client_software` is `sssd`.
           An invalid configuration fails the role and prevents that
           restart.
+      ad_integration_transactional_update_reboot_ok:
+        type: raw
+        default: null
+        description: >
+          Whether to permit reboots required by transactional updates. Set
+          to `true` to allow reboots, `false` to disallow reboots, or
+          leave unset so that the role will fail to ensure the reboot
+          requirement is not overlooked. Accepts a boolean value or `null`.
+          Only managed nodes whose OS uses transactional updates read it;
+          on other systems it is ignored.

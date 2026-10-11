@@ -186,3 +186,6 @@ ad_integration_secure_logging: true
 
 # Validate SSSD configuration after edits and before restarting SSSD.
 ad_integration_validate_sssd_config: true
+
+# Transactional update reboot: true reboots, false only notifies, null fails
+ad_integration_transactional_update_reboot_ok: null
