@@ -8,12 +8,23 @@
 
 - name: Ensure required packages are installed
   ansible.builtin.package:
-    name: "{{ __ad_integration_packages }}"
+    name: "{{ __ad_integration_packages +
+      __ad_integration_validation_packages }}"
     state: present
     use: "{{ (__ad_integration_is_ostree | d(false)) |
       ternary('ansible.posix.rhel_rpm_ostree', omit) }}"
   when: ad_integration_manage_packages | bool
   register: __ad_integration_package_register
+
+- name: Handle reboot for transactional update systems
+  include_tasks: transactional_reboot.yml
+  vars:
+    __ad_integration_tu_result: "{{ __ad_integration_package_register }}"
+    __ad_integration_tu_packages: "{{ __ad_integration_packages +
+      __ad_integration_validation_packages }}"
+  when:
+    - __ad_integration_is_transactional
+    - __ad_integration_package_register is not skipped
 
 - name: Ensure required services are enabled and started
   ansible.builtin.service:

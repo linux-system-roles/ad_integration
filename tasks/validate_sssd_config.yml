@@ -11,6 +11,16 @@
     - ad_integration_manage_packages | bool
     - ad_integration_validate_sssd_config | bool
     - ad_integration_client_software == 'sssd'
+  register: __ad_integration_sssd_tools_register
+
+- name: Handle reboot for transactional update systems
+  include_tasks: transactional_reboot.yml
+  vars:
+    __ad_integration_tu_result: "{{ __ad_integration_sssd_tools_register }}"
+    __ad_integration_tu_packages: [sssd-tools]
+  when:
+    - __ad_integration_is_transactional
+    - __ad_integration_sssd_tools_register is not skipped
 
 - name: Check SSSD configuration
   command: sssctl config-check

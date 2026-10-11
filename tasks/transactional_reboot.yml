@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MIT
+---
+# A staged install reports ok on re-runs, so ask rpm (by provides) if it is live.
+- name: Check whether the packages are live on a transactional update system
+  ansible.builtin.command:  # noqa command-instead-of-module
+    argv: "{{ ['rpm', '-q', '--whatprovides'] + __ad_integration_tu_packages }}"
+  register: __ad_integration_packages_live
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Handle reboot for transactional update systems
+  when: __ad_integration_tu_result is changed or
+    (__ad_integration_packages_live.rc | d(0)) != 0
+  block:
+    - name: Notify user that reboot is needed to apply changes
+      ansible.builtin.debug:
+        msg: >
+          Reboot required to apply changes due to transactional updates.
+
+    - name: Reboot transactional update systems
+      ansible.builtin.reboot:
+        msg: Rebooting the system to apply transactional update changes.
+      when:
+        - ad_integration_transactional_update_reboot_ok is not none
+        - ad_integration_transactional_update_reboot_ok | bool
+
+    - name: Fail if reboot is needed and not set
+      ansible.builtin.fail:
+        msg: >
+          Reboot is required but not allowed. Please set 'ad_integration_transactional_update_reboot_ok' to proceed.
+      when:
+        - ad_integration_transactional_update_reboot_ok is none
