@@ -23,22 +23,6 @@
     - ad_integration_allow_rc4_crypto | bool
     - not ad_integration_manage_crypto_policies
 
-- name: Ensure required packages are installed
-  package:
-    name: "{{ __ad_integration_packages }}"
-    state: present
-    use: "{{ (__ad_integration_is_ostree | d(false)) |
-      ternary('ansible.posix.rhel_rpm_ostree', omit) }}"
-  when: ad_integration_manage_packages | bool
-  register: __ad_integration_package_register
-
-- name: Ensure required services are enabled and started
-  service:
-    name: "{{ item }}"
-    state: started
-    enabled: true
-  loop: "{{ __ad_integration_services }}"
-
 - name: Generate /etc/{{ __ad_integration_realmd_config }}
   template:
     src: "{{ __ad_integration_realmd_config }}.j2"
