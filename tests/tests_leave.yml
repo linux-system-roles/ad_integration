@@ -95,6 +95,20 @@
           include_tasks: tasks/run_role_with_clear_facts.yml
           vars:
             __ad_integration_realm_cmd: "{{ __leave_tmp.path }}/realm"
+            ad_integration_manage_packages: true
+
+        - name: Gather package and service state after managed leave
+          package_facts:
+
+        - name: Gather realmd service state after managed leave
+          service_facts:
+
+        - name: Assert managed leave installed and started realmd
+          assert:
+            that:
+              - "'realmd' in ansible_facts.packages"
+              - ansible_facts.services.get('realmd.service',
+                ansible_facts.services.get('realmd', {})).get('state') == 'running'
 
         - name: Check remaining realm and leave calls
           slurp:

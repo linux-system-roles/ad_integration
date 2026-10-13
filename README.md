@@ -101,7 +101,9 @@ Default: false
 #### ad_integration_state
 
 Set to `present` to join or configure `ad_integration_realm`, or `absent` to
-leave that realm. An absent realm is a no-op. Leaving skips join-only package,
+leave that realm. An absent realm needs no leave action. With
+`ad_integration_manage_packages: true`, the role installs the AD prerequisites
+and starts realmd before either joining or leaving. Leaving skips join-only
 network, time, crypto policy, and SSSD configuration tasks. Local leave retains
 the remote computer account by default.
 
@@ -384,7 +386,10 @@ previous PAM/nsswitch changes, until
 
 #### ad_integration_manage_packages
 
-By default, the role installs OS‐level packages needed for Active Directory integration. If `false`, the role assumes that all prerequisites are already in place and skips package installation.
+By default, the role installs OS‐level packages needed for Active Directory
+integration, including when leaving a realm. It also starts realmd before
+leaving. If `false`, the role assumes the prerequisites are already available
+and skips package installation; the leave path does not start realmd.
 
 Default: true
 
