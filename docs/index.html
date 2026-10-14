@@ -162,6 +162,16 @@ id="toc-ad_integration_user">ad_integration_user</a></li>
 id="toc-ad_integration_join_to_dc">ad_integration_join_to_dc</a></li>
 <li><a href="#ad_integration_force_rejoin"
 id="toc-ad_integration_force_rejoin">ad_integration_force_rejoin</a></li>
+<li><a href="#ad_integration_state"
+id="toc-ad_integration_state">ad_integration_state</a></li>
+<li><a href="#ad_integration_leave_remove_computer"
+id="toc-ad_integration_leave_remove_computer">ad_integration_leave_remove_computer</a></li>
+<li><a href="#ad_integration_leave_reset_computer"
+id="toc-ad_integration_leave_reset_computer">ad_integration_leave_reset_computer</a></li>
+<li><a href="#ad_integration_leave_computer_name"
+id="toc-ad_integration_leave_computer_name">ad_integration_leave_computer_name</a></li>
+<li><a href="#ad_integration_leave_sssd_cache_delete"
+id="toc-ad_integration_leave_sssd_cache_delete">ad_integration_leave_sssd_cache_delete</a></li>
 <li><a href="#ad_integration_auto_id_mapping"
 id="toc-ad_integration_auto_id_mapping">ad_integration_auto_id_mapping</a></li>
 <li><a href="#ad_integration_client_software"
@@ -373,7 +383,96 @@ directly.</p>
 <p>Leave existing domain prior to performing join. This might be needed
 if the keytab is unable to authenticate with the machine account to the
 AD domain.</p>
+<p>The role leaves only <code>ad_integration_realm</code>, including on
+hosts configured for more than one realm.</p>
 <p>Default: false</p>
+<h3 id="ad_integration_state">ad_integration_state</h3>
+<p>Set to <code>present</code> to join or configure
+<code>ad_integration_realm</code>, or <code>absent</code> to leave that
+realm. An absent realm needs no leave action. With
+<code>ad_integration_manage_packages: true</code>, the role installs the
+AD prerequisites and starts realmd before either joining or leaving.
+Leaving skips join-only network, time, crypto policy, and SSSD
+configuration tasks. Local leave retains the remote computer account by
+default.</p>
+<p>Default: <code>present</code></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Leave one AD realm locally</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">include_role</span><span class="kw">:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> linux-system-roles.ad_integration</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> example.com</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_state</span><span class="kw">:</span><span class="at"> absent</span></span></code></pre></div>
+<h3
+id="ad_integration_leave_remove_computer">ad_integration_leave_remove_computer</h3>
+<p>When <code>ad_integration_state: absent</code>, set this to
+<code>true</code> to ask <code>realm leave</code> to remove or disable
+the selected realm's computer account in Active Directory. A configured
+realm requires <code>ad_integration_user</code> and
+<code>ad_integration_password</code>; provide the password through
+Ansible Vault. The role passes it on standard input and suppresses task
+output when <code>ad_integration_secure_logging</code> is enabled. The
+role does not attempt remote removal when the host is already
+unjoined.</p>
+<p>Default: false</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Leave a realm and remove its AD computer account</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">include_role</span><span class="kw">:</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> linux-system-roles.ad_integration</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> example.com</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_state</span><span class="kw">:</span><span class="at"> absent</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_leave_remove_computer</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_user</span><span class="kw">:</span><span class="at"> Administrator</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;{{ vaulted_ad_password }}&quot;</span></span></code></pre></div>
+<h3
+id="ad_integration_leave_reset_computer">ad_integration_leave_reset_computer</h3>
+<p>When <code>ad_integration_state: absent</code>, set this to
+<code>true</code> to run <code>adcli reset-computer</code> before local
+unconfiguration. This keeps the AD account but resets its password.
+Provide <code>ad_integration_user</code> and
+<code>ad_integration_password</code>; the role passes the password on
+standard input. This cannot be combined with
+<code>ad_integration_leave_remove_computer</code>. <code>adcli</code>
+must already be installed on the host.</p>
+<p>Default: false</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Reset the AD computer account, then leave the realm</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">include_role</span><span class="kw">:</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> linux-system-roles.ad_integration</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> example.com</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_state</span><span class="kw">:</span><span class="at"> absent</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_leave_reset_computer</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_leave_computer_name</span><span class="kw">:</span><span class="at"> client.example.com</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_user</span><span class="kw">:</span><span class="at"> Administrator</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;{{ vaulted_ad_password }}&quot;</span></span></code></pre></div>
+<h3
+id="ad_integration_leave_computer_name">ad_integration_leave_computer_name</h3>
+<p>The computer name passed to <code>adcli reset-computer</code>. By
+default, the role uses the host's FQDN. Set this when the AD computer
+account uses a different name.</p>
+<p>Default: null</p>
+<h3
+id="ad_integration_leave_sssd_cache_delete">ad_integration_leave_sssd_cache_delete</h3>
+<p>When <code>ad_integration_state: absent</code>, set this to
+<code>true</code> to delete the selected realm's
+<code>cache_&lt;realm&gt;.ldb</code> and
+<code>timestamps_&lt;realm&gt;.ldb</code> SSSD files. The role briefly
+stops SSSD if it is running and restores its prior running state. Other
+realms' cache files, shared SSSD databases, and
+<code>/etc/krb5.keytab</code> are left alone. Cache deletion is skipped
+for the winbind client. In check mode, the role reports pending deletion
+without removing files.</p>
+<p>Default: false</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Leave a realm and delete its SSSD cache files</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">include_role</span><span class="kw">:</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> linux-system-roles.ad_integration</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> example.com</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_state</span><span class="kw">:</span><span class="at"> absent</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_leave_sssd_cache_delete</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span></code></pre></div>
 <h3
 id="ad_integration_auto_id_mapping">ad_integration_auto_id_mapping</h3>
 <p>perform automatic UID/GID mapping for users and groups, set to
@@ -514,19 +613,19 @@ join command. Useful if some specific configuration like
 <h3 id="ad_integration_sssd_settings">ad_integration_sssd_settings</h3>
 <p>A list of setting to be included into the <code>[sssd]</code> section
 of the sssd.conf file. See sssd.conf man pages for details. Example:</p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_settings</span><span class="kw">:</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">key</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_name&quot;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">value</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_value&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_settings</span><span class="kw">:</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">key</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_name&quot;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">value</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_value&quot;</span></span></code></pre></div>
 <h3
 id="ad_integration_sssd_custom_settings">ad_integration_sssd_custom_settings</h3>
 <p>A list of custom setting to be included into the
 <code>[domain/$REALM]</code> section of the sssd.conf file. See
 sssd.conf man pages for details. Example:</p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_custom_settings</span><span class="kw">:</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">key</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_name&quot;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">value</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_value&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_custom_settings</span><span class="kw">:</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">key</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_name&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">value</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;configuration_value&quot;</span></span></code></pre></div>
 <p><em>NOTE</em>: See the <a
 href="#ad_integration_realm">ad_integration_realm</a> and <a
 href="#ad_integration_sssd_merge_duplicate_sections">ad_integration_sssd_merge_duplicate_sections</a>
@@ -547,12 +646,12 @@ and <code>ad_integration_manage_packages</code> is <code>true</code>.
 Otherwise, install <code>sssd-tools</code> before running the role.
 Validation fails if <code>sssctl</code> is unavailable.</p>
 <p>To disable validation when invoking the role:</p>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Join AD without SSSD configuration validation</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">include_role</span><span class="kw">:</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> linux-system-roles.ad_integration</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_validate_sssd_config</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Join AD without SSSD configuration validation</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">include_role</span><span class="kw">:</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">name</span><span class="kw">:</span><span class="at"> linux-system-roles.ad_integration</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_validate_sssd_config</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span></code></pre></div>
 <h3
 id="ad_integration_preserve_authselect_profile">ad_integration_preserve_authselect_profile</h3>
 <p>This is a boolean, default is <code>false</code>. If
@@ -564,8 +663,10 @@ addressed.</p>
 <h3
 id="ad_integration_manage_packages">ad_integration_manage_packages</h3>
 <p>By default, the role installs OS‐level packages needed for Active
-Directory integration. If <code>false</code>, the role assumes that all
-prerequisites are already in place and skips package installation.</p>
+Directory integration, including when leaving a realm. It also starts
+realmd before leaving. If <code>false</code>, the role assumes the
+prerequisites are already available and skips package installation; the
+leave path does not start realmd.</p>
 <p>Default: true</p>
 <h3
 id="ad_integration_sssd_merge_duplicate_sections">ad_integration_sssd_merge_duplicate_sections</h3>
@@ -582,10 +683,10 @@ consolidate these sections into one, use
 example, if you have a sssd.conf with both
 <code>[domain/example.com]</code> and <code>[domain/EXAMPLE.COM]</code>,
 and you want to use only the latter, then use:</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> EXAMPLE.COM</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_merge_duplicate_sections</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_custom_settings</span><span class="kw">:</span><span class="at"> somesettings</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> EXAMPLE.COM</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_merge_duplicate_sections</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ad_integration_sssd_custom_settings</span><span class="kw">:</span><span class="at"> somesettings</span></span></code></pre></div>
 <p>All of the settings from <code>[domain/example.com]</code> will be
 moved to <code>[domain/EXAMPLE.COM]</code>, and the section
 <code>[domain/example.com]</code> will be removed from sssd.conf.</p>
@@ -609,15 +710,15 @@ integration with AD domain <code>domain.example.com</code>, the join
 will be performed with user Administrator using the vault stored
 password. Prior to the join, the crypto policy for AD SUPPORT with RC4
 encryption allowed will be set.</p>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;domain.example.com&quot;</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> !vault | …vault encrypted password…</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_manage_crypto_policies</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_allow_rc4_crypto</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">roles</span><span class="kw">:</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> linux-system-roles.ad_integration</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">hosts</span><span class="kw">:</span><span class="at"> all</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">vars</span><span class="kw">:</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_realm</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;domain.example.com&quot;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_password</span><span class="kw">:</span><span class="at"> !vault | …vault encrypted password…</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_manage_crypto_policies</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ad_integration_allow_rc4_crypto</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">roles</span><span class="kw">:</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> linux-system-roles.ad_integration</span></span></code></pre></div>
 <h1 id="rpm-ostree">rpm-ostree</h1>
 <p>See README-ostree.md</p>
 <h1 id="license">License</h1>
