@@ -175,6 +175,27 @@
     label: "{{ item.key | d('unnamed') }}"
   when: item.value is defined
 
+- name: Assert section-aware SSSD settings are valid
+  ansible.builtin.assert:
+    that:
+      - item.section is defined and item.section is string
+      - item.section | default('') | length > 0
+      - item.key is defined and item.key is string
+      - item.key | default('') | length > 0
+      - item.state | default('present') in ['present', 'absent']
+      - >-
+        item.state | default('present') == 'absent'
+        or (item.value is defined
+            and (item.value is string or (item.value | type_debug) == 'int'))
+    fail_msg: >-
+      ad_integration_sssd_section_settings[{{ idx }}] must have a nonempty
+      section and key, state present or absent, and a string or integer value
+      when state is present
+  loop: "{{ ad_integration_sssd_section_settings }}"
+  loop_control:
+    index_var: idx
+    label: "{{ item.section | default('unnamed') }}/{{ item.key | default('unnamed') }}"
+
 - name: Assert value in ad_integration_sssd_custom_settings is a string or integer
   ansible.builtin.assert:
     that:

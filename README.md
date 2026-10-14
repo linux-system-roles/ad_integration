@@ -353,6 +353,35 @@ ad_integration_sssd_custom_settings:
 [ad_integration_sssd_merge_duplicate_sections](#ad_integration_sssd_merge_duplicate_sections) for information about how the
 role writes these settings to the sssd.conf file.
 
+#### ad_integration_sssd_section_settings
+
+Manage options in any `sssd.conf` section, including `[nss]` and `[pam]`.
+Each list item needs `section` and `key`. Set `value` to a string or integer
+when adding an option. Set `state: absent` to remove an option; `value` is then
+optional. Sections and options not named in the list are preserved. The list
+is applied in order after `ad_integration_sssd_settings`, dynamic DNS settings,
+and `ad_integration_sssd_custom_settings`, so its last entry wins if multiple
+entries target the same option. Use `domain/{{ ad_integration_realm }}` for
+the joined domain; the role follows the same case matching rules as
+`ad_integration_sssd_custom_settings`, but prefers an exact existing section
+name when more than one capitalization is present.
+
+```yaml
+ad_integration_sssd_section_settings:
+  - section: nss
+    key: filter_users
+    value: root
+  - section: pam
+    key: offline_credentials_expiration
+    value: 3
+  - section: pam
+    key: pam_verbosity
+    state: absent
+```
+
+Values for timeouts, caching, and identity behavior depend on the deployment;
+the role does not set new defaults for these sections.
+
 #### ad_integration_validate_sssd_config
 
 This is a boolean, default is `true`. If `true` and

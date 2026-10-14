@@ -162,6 +162,11 @@ ad_integration_sssd_settings: []
 #   value: "configuration_value"
 ad_integration_sssd_custom_settings: []
 
+# Settings for any sssd.conf section. Each entry has section, key, and value;
+# state: absent removes an option and does not require value. Applied after the
+# older settings variables, so this list takes precedence for the same option.
+ad_integration_sssd_section_settings: []
+
 # If `true`, configure realmd.conf to remove the `authselect` command from
 # `sssd-enable-logins` to avoid overwriting previous PAM/nsswitch changes, until
 # https://issues.redhat.com/browse/RHEL-5101 is addressed.
