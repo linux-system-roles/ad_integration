@@ -225,6 +225,7 @@
 - name: Handle any SSSD settings
   when: ad_integration_sssd_settings | length > 0 or
     ad_dyndns_update or ad_integration_sssd_custom_settings | length > 0 or
+    ad_integration_sssd_section_settings | length > 0 or
     __ad_integration_matching_sections_before | d({}) | length > 0
   vars:
     __ad_sssd_conf: "{{ __ad_sssd_conf_content.content | b64decode | ad_integration_from_ini
@@ -253,6 +254,7 @@
         path: "{{ __ad_integration_sssd_conf }}"
       register: __ad_sssd_conf_content
       when: __ad_sssd_conf_stat.stat.exists
+      no_log: "{{ ad_integration_secure_logging }}"
 
     - name: Consolidate options from duplicate sections
       include_tasks: include_ini_file.yml
@@ -360,6 +362,26 @@
       when:
         - ad_dyndns_update | bool
         - item.value is none or item.value == ''
+
+    - name: Configure section-aware SSSD settings
+      include_tasks: include_ini_file.yml
+      vars:
+        __ad_integration_ini_file_path: "{{ __ad_integration_sssd_conf }}"
+        __ad_integration_ini_file_state: "{{ item.state | default('present') }}"
+        __ad_integration_ini_file_section: >-
+          {{ item.section
+             if item.section in __ad_matching_section_names
+             else __ad_section_to_use
+             if item.section | lower == __ad_sssd_section | lower
+             and __ad_matching_section_names | length > 0
+             else item.section }}
+        __ad_integration_ini_file_option: "{{ item.key }}"
+        __ad_integration_ini_file_value: "{{ item.value | default(omit) }}"
+        __ad_integration_ini_file_create: true
+        __ad_integration_ini_file_owner: root
+        __ad_integration_ini_file_group: root
+        __ad_integration_ini_file_mode: "u=rw,g=,o="
+      loop: "{{ ad_integration_sssd_section_settings }}"
 
 - name: Validate final SSSD configuration
   include_tasks: validate_sssd_config.yml
