@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: MIT
+# Assisted by Claude Code using model(s) Claude Opus 5.5
+---
+- name: Test that validation accepts the sssd.conf realmd writes
+  hosts: all,!ad
+  tasks:
+    - name: Initialize role platform variables
+      include_role:
+        name: linux-system-roles.ad_integration
+        tasks_from: set_vars.yml
+        public: true
+
+    - name: Check for an existing sssd.conf
+      stat:
+        path: "{{ __ad_integration_sssd_conf }}"
+      register: __sssd_conf_before
+
+    - name: Back up the existing sssd.conf
+      copy:
+        src: "{{ __ad_integration_sssd_conf }}"
+        dest: "{{ __ad_integration_sssd_conf }}.test-backup"
+        remote_src: true
+        mode: preserve
+      when: __sssd_conf_before.stat.exists
+
+    - name: Test validation of a realmd sssd.conf
+      block:
+        - name: Create the sssd.conf directory
+          file:
+            path: "{{ __ad_integration_sssd_conf | dirname }}"
+            state: directory
+            mode: "0711"
+
+        - name: Write sssd.conf as realmd does after a join
+          copy:
+            dest: "{{ __ad_integration_sssd_conf }}"
+            mode: "0600"
+            content: |
+              [sssd]
+              domains = {{ __ad_integration_sample_realm }}
+              config_file_version = 2
+              services = nss, pam
+
+              [domain/{{ __ad_integration_sample_realm }}]
+              default_shell = /bin/bash
+              krb5_store_password_if_offline = True
+              cache_credentials = True
+              krb5_realm = {{ __ad_integration_sample_realm | upper }}
+              realmd_tags = manages-system joined-with-adcli
+              id_provider = ad
+              fallback_homedir = /home/%u@%d
+              ad_domain = {{ __ad_integration_sample_realm }}
+              use_fully_qualified_names = True
+              ldap_id_mapping = True
+              access_provider = ad
+
+        - name: Validate the configuration with sssctl
+          include_role:
+            name: linux-system-roles.ad_integration
+            tasks_from: validate_sssd_config.yml
+
+        - name: Read the validated sssd.conf
+          slurp:
+            path: "{{ __ad_integration_sssd_conf }}"
+          register: __sssd_conf
+
+        - name: Assert the obsolete option is gone and the rest is kept
+          assert:
+            that:
+              - "'config_file_version' not in __sssd_conf_content"
+              - "'services = nss, pam' in __sssd_conf_content"
+              - "'id_provider = ad' in __sssd_conf_content"
+          vars:
+            __sssd_conf_content: "{{ __sssd_conf.content | b64decode }}"
+
+      always:
+        - name: Restore the original sssd.conf
+          tags: tests::cleanup
+          copy:
+            src: "{{ __ad_integration_sssd_conf }}.test-backup"
+            dest: "{{ __ad_integration_sssd_conf }}"
+            remote_src: true
+            mode: preserve
+          when: __sssd_conf_before.stat.exists
+
+        - name: Remove the test files
+          tags: tests::cleanup
+          file:
+            path: "{{ item }}"
+            state: absent
+          loop: "{{ [__ad_integration_sssd_conf ~ '.test-backup'] +
+            ([] if __sssd_conf_before.stat.exists else [__ad_integration_sssd_conf]) }}"
