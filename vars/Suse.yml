@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: MIT
+# Assisted by Claude Code using model(s) Claude Opus 5.5
+---
+# realm join installs the sssd and samba packages it needs through PackageKit,
+# which cannot write the read-only root of a transactional system
+__ad_integration_packages: "{{ ['adcli', 'realmd', 'PackageKit'] +
+  (['sssd', 'sssd-ad', 'samba-client']
+  if ad_integration_state == 'present'
+  and ad_integration_client_software == 'sssd' else []) }}"
