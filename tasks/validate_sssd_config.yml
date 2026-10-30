@@ -22,6 +22,16 @@
     - __ad_integration_is_transactional
     - __ad_integration_sssd_tools_register is not skipped
 
+# realmd writes config_file_version, which sssctl rejects since SSSD 2.10
+- name: Remove the obsolete config_file_version option
+  lineinfile:
+    path: "{{ __ad_integration_sssd_conf }}"
+    regexp: '^\s*config_file_version\s*='
+    state: absent
+  when:
+    - ad_integration_validate_sssd_config | bool
+    - ad_integration_client_software == 'sssd'
+
 - name: Check SSSD configuration
   command: sssctl config-check
   changed_when: false
