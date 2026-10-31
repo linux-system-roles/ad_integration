@@ -158,8 +158,8 @@
         __ad_integration_ini_file_state: absent
         __ad_integration_ini_file_section: "{{ item }}"
         __ad_integration_ini_file_owner: root
-        __ad_integration_ini_file_group: root
-        __ad_integration_ini_file_mode: "u=rw,g=,o="
+        __ad_integration_ini_file_group: "{{ __ad_integration_sssd_conf_group }}"
+        __ad_integration_ini_file_mode: "{{ __ad_integration_sssd_conf_mode }}"
       loop: "{{ __ad_matching_section_names }}"
       when:
         - __ad_sssd_conf_stat.stat.exists
@@ -266,8 +266,8 @@
         __ad_integration_ini_file_value: "{{ item.value }}"
         __ad_integration_ini_file_create: true
         __ad_integration_ini_file_owner: root
-        __ad_integration_ini_file_group: root
-        __ad_integration_ini_file_mode: "u=rw,g=,o="
+        __ad_integration_ini_file_group: "{{ __ad_integration_sssd_conf_group }}"
+        __ad_integration_ini_file_mode: "{{ __ad_integration_sssd_conf_mode }}"
       loop: "{{ (__ad_integration_matching_sections_before | d({})).values() | map('dict2items') | flatten | list }}"
       when:
         - ad_integration_sssd_merge_duplicate_sections | bool
@@ -282,8 +282,8 @@
         __ad_integration_ini_file_value: "{{ item.value }}"
         __ad_integration_ini_file_create: true
         __ad_integration_ini_file_owner: root
-        __ad_integration_ini_file_group: root
-        __ad_integration_ini_file_mode: "u=rw,g=,o="
+        __ad_integration_ini_file_group: "{{ __ad_integration_sssd_conf_group }}"
+        __ad_integration_ini_file_mode: "{{ __ad_integration_sssd_conf_mode }}"
       loop: "{{ ad_integration_sssd_settings }}"
 
     - name: Configure dynamic DNS updates
@@ -296,8 +296,8 @@
         __ad_integration_ini_file_value: "{{ item.value }}"
         __ad_integration_ini_file_create: true
         __ad_integration_ini_file_owner: root
-        __ad_integration_ini_file_group: root
-        __ad_integration_ini_file_mode: "u=rw,g=,o="
+        __ad_integration_ini_file_group: "{{ __ad_integration_sssd_conf_group }}"
+        __ad_integration_ini_file_mode: "{{ __ad_integration_sssd_conf_mode }}"
       loop:
         - key: dyndns_update
           value: "{{ ad_dyndns_update | string }}"
@@ -337,8 +337,8 @@
         __ad_integration_ini_file_value: "{{ item.value }}"
         __ad_integration_ini_file_create: true
         __ad_integration_ini_file_owner: root
-        __ad_integration_ini_file_group: root
-        __ad_integration_ini_file_mode: "u=rw,g=,o="
+        __ad_integration_ini_file_group: "{{ __ad_integration_sssd_conf_group }}"
+        __ad_integration_ini_file_mode: "{{ __ad_integration_sssd_conf_mode }}"
       loop: "{{ ad_integration_sssd_custom_settings }}"
 
     # If dyndns_iface and/or dyndns_server previously had a configured value but are
@@ -352,8 +352,8 @@
         __ad_integration_ini_file_section: "{{ __ad_section_to_use }}"
         __ad_integration_ini_file_option: "{{ item.key }}"
         __ad_integration_ini_file_owner: root
-        __ad_integration_ini_file_group: root
-        __ad_integration_ini_file_mode: "u=rw,g=,o="
+        __ad_integration_ini_file_group: "{{ __ad_integration_sssd_conf_group }}"
+        __ad_integration_ini_file_mode: "{{ __ad_integration_sssd_conf_mode }}"
       loop:
         - key: dyndns_iface
           value: "{{ '' if ad_dyndns_iface is none else ad_dyndns_iface }}"
@@ -379,8 +379,8 @@
         __ad_integration_ini_file_value: "{{ item.value | default(omit) }}"
         __ad_integration_ini_file_create: true
         __ad_integration_ini_file_owner: root
-        __ad_integration_ini_file_group: root
-        __ad_integration_ini_file_mode: "u=rw,g=,o="
+        __ad_integration_ini_file_group: "{{ __ad_integration_sssd_conf_group }}"
+        __ad_integration_ini_file_mode: "{{ __ad_integration_sssd_conf_mode }}"
       loop: "{{ ad_integration_sssd_section_settings }}"
 
 - name: Validate final SSSD configuration
