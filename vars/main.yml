@@ -37,6 +37,9 @@ __ad_integration_sample_realm: sample-realm.com
 __ad_integration_sample_dc: sample-dc.sample-realm.com
 # path to sssd.conf file
 __ad_integration_sssd_conf: /etc/sssd/sssd.conf
+# SSSD 2.10+ sets sssd.conf to root:sssd 0640 on every start; keep that, never more
+__ad_integration_sssd_conf_group: "{{ 'sssd' if __ad_sssd_conf_stat.stat.gr_name | d('') == 'sssd' else 'root' }}"
+__ad_integration_sssd_conf_mode: "{{ 'u=rw,g-wx,o=' if __ad_integration_sssd_conf_group == 'sssd' else 'u=rw,g=,o=' }}"
 # directory containing SSSD domain cache files
 __ad_integration_sssd_db_dir: /var/lib/sss/db
 # realm command
