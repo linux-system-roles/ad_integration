@@ -230,6 +230,8 @@ id="toc-ad_integration_manage_packages">ad_integration_manage_packages</a></li>
 id="toc-ad_integration_sssd_merge_duplicate_sections">ad_integration_sssd_merge_duplicate_sections</a></li>
 <li><a href="#ad_integration_secure_logging"
 id="toc-ad_integration_secure_logging">ad_integration_secure_logging</a></li>
+<li><a href="#ad_integration_transactional_update_reboot_ok"
+id="toc-ad_integration_transactional_update_reboot_ok">ad_integration_transactional_update_reboot_ok</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#example-playbook" id="toc-example-playbook">Example
@@ -247,6 +249,7 @@ integration.</p>
 <ul>
 <li>RHEL7+, CentOS7+</li>
 <li>Fedora</li>
+<li>SLES 16, openSUSE Leap 16</li>
 </ul>
 <h1 id="requirements">Requirements</h1>
 <p>In order to join to the domain, you must use an Active Directory user
@@ -513,14 +516,18 @@ to true.</p>
 <h3
 id="ad_integration_manage_crypto_policies">ad_integration_manage_crypto_policies</h3>
 <p>If true, the ad_integration role will use
-fedora.linux_system_roles.crypto_policies as needed</p>
+fedora.linux_system_roles.crypto_policies as needed. This applies only
+to Fedora and RHEL8 (and newer), including CentOS, AlmaLinux and Rocky
+Linux; on other distributions the variable is ignored.</p>
 <p>Default: false</p>
 <h3
 id="ad_integration_allow_rc4_crypto">ad_integration_allow_rc4_crypto</h3>
 <p>If true, the ad_integration role will set the crypto policy allowing
 RC4 encryption. Providing this variable automatically sets <a
 href="#ad_integration_manage_crypto_policies">ad_integration_manage_crypto_policies</a>
-to true</p>
+to true. Like that variable, it applies only to Fedora and RHEL8 (and
+newer), including CentOS, AlmaLinux and Rocky Linux, and is ignored
+elsewhere.</p>
 <p>Default: false</p>
 <p><strong>NOTE</strong>: This may reboot the machine in order to apply
 the crypto policy, which is needed for the subsequent realm join.</p>
@@ -734,6 +741,18 @@ from these tasks. However, be aware that this may expose sensitive
 information in logs, so it should only be used in development or
 troubleshooting scenarios.</p>
 <p>Default: true</p>
+<h3
+id="ad_integration_transactional_update_reboot_ok">ad_integration_transactional_update_reboot_ok</h3>
+<p>This variable is used to handle reboots required by transactional
+updates. If a transactional update requires a reboot, the role will
+proceed with the reboot if
+<code>ad_integration_transactional_update_reboot_ok</code> is set to
+<code>true</code>. If set to <code>false</code>, the role will notify
+the user that a reboot is required, allowing for custom handling of the
+reboot requirement. If this variable is not set, the role will fail to
+ensure the reboot requirement is not overlooked. For non-transactional
+update systems, this variable is ignored.</p>
+<p>Default: null</p>
 <h1 id="example-playbook">Example Playbook</h1>
 <p>The following is an example playbook to setup direct Active Directory
 integration with AD domain <code>domain.example.com</code>, the join
